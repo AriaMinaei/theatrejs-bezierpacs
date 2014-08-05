@@ -1,0 +1,27 @@
+{
+  "name": "theatrejs-bezierpacs",
+  "version": "0.2.0-dev",
+  "description": "Cubic-Bezier keyframes component for theatrejs",
+  "main": "lib/TimeGrid.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha test/*.coffee",
+    "prepublish": "coffee --bare --compile --output ./lib ./src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AriaMinaei/theatrejs-bezierpacs.git"
+  },
+  "keywords": [],
+  "author": "Aria Minaei",
+  "license": "N/A",
+  "bugs": {
+    "url": "https://github.com/AriaMinaei/theatrejs-bezierpacs/issues"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "~1.9.1",
+    "chai-fuzzy": "^1.4.0",
+    "coffee-script": "~1.7.1",
+    "mocha": "~1.19.0"
+  }
+}
