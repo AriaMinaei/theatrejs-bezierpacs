@@ -4,8 +4,43 @@ chai.use require 'chai-fuzzy'
 
 chai.should()
 
-describe "test", ->
+class BezierPacs
 
-	it "should equal 10", ->
+	constructor: ->
 
-		10.should.equal 10
+	pointToString: ->
+
+		@getPoint()
+
+	getPoint: ->
+
+		@locatePoint()
+
+	locatePoint: ->
+
+		@findByIndex()
+
+	getRounded: ->
+
+		120
+
+
+describe "BezierPacs", ->
+
+	describe "pointToString()", ->
+
+		it "should return null for a non-existing point", ->
+
+		it "should throw if time is out of bounds", ->
+
+		it "should serialize a single point", ->
+
+			b = new BezierPacs
+
+			b.pointToString(120)
+
+		it "should throw if point is invalid", ->
+
+		it "should not round up", ->
+
+			(new BezierPacs).getRounded().should.equal 119.5
