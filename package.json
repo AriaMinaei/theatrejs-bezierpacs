@@ -18,11 +18,14 @@
   "bugs": {
     "url": "https://github.com/AriaMinaei/theatrejs-bezierpacs/issues"
   },
-  "dependencies": {},
+  "dependencies": {
+    "utila": "^0.4.0"
+  },
   "devDependencies": {
     "chai": "~1.9.1",
     "chai-fuzzy": "^1.4.0",
     "coffee-script": "^1.8.0",
+    "eyespect": "^0.1.10",
     "jitter": "^1.3.0",
     "mocha": "~1.19.0",
     "mocha-pretty-spec-reporter": "0.1.0-beta.1"
