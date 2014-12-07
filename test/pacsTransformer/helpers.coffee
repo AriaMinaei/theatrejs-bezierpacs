@@ -109,11 +109,20 @@ module.exports.pacsToString = pacsToString = (pacs) ->
 
 describe "PacsTransformer Helpers", ->
 
-	describe "combinations", ->
+	describe "stringToStuff()", ->
+
+		it "should accept a string like 'a  x-b-y c'"
+		it "should return an object called `stuff` that has pacs, selection, transformer, and a list of all the points created"
+
+	describe "pacsToString()", ->
+
+		it "should accept a BezierPacs object and create a string from reading its sequence"
+
+	describe "these cases are pacs built and then unbuilt from a string", ->
 
 		checkCombo = (str) ->
 
-			it "case: '#{str}'", ->
+			it "string: '#{str}'", ->
 
 				stuff = stringToStuff str
 
