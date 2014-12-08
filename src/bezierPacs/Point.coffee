@@ -9,8 +9,8 @@ module.exports = class Point extends Item
 
 		@_value = 0
 
-		@_leftHandler = new Float32Array 2
-		@_rightHandler = new Float32Array 2
+		@_leftHandler = new Float64Array 2
+		@_rightHandler = new Float64Array 2
 
 		@_leftConnector = null
 		@_rightConnector = null

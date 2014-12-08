@@ -114,7 +114,7 @@ module.exports = class ChronologyContainer
 	 * If there are two Items on that time (a point and a connector),
 	 * returns the connector.
 	 *
-	 * @param  Float32 t time
+	 * @param  Float64 t time
 	 * @return Item/undefined
 	###
 	getItemAfter: (t) ->

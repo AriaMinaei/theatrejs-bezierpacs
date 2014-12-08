@@ -2,6 +2,7 @@ PacsTransformer = require '../src/PacsTransformer'
 PointsSelection = require '../src/PointsSelection'
 BezierPacs = require '../src/BezierPacs'
 {stringToStuff, pacsToString} = require './pacsTransformer/helpers'
+test = it
 
 require('chai').use(require 'chai-fuzzy').should()
 
@@ -19,26 +20,33 @@ describe "PacsTransformer", ->
 
 		it "should work", ->
 
-			{pacs, selection, transformer} = stringToStuff "x y-a b-c"
+			s = "x-a y-z d"
 
-			pacsToString pacs
+			console.log s
 
-			# console.log pacs, selection, transformer
+			{pacs, selection, transformer} = stringToStuff s
 
-			# t.useSelection(s)
+			transformer.transform (p) ->
 
-			# t.addTransform (p) ->
+				p.time += 100
 
-			# 	p.setTime p.getTime() + 1000
-
-	describe "setTransform()", ->
+	describe "transform()", ->
 
 		it "should apply a transform on each point's initial state"
 
-	describe "addTransform()", ->
+	describe "_ensureInitialModelIsReady()", ->
 
-		it "should apply a transform on each point's current state"
+		it "should build it the initial model if it's is not ready"
 
-	describe "resetTransform()", ->
+	describe "_buildInitialModel()", ->
 
-		it "should put all points on their initial state"
+		it "should build a list of TransformablePoint-s"
+		it "should build the list in order"
+		it "should also build a map with each point's _idInPacs as keys"
+		it "should tell each point if it is the first or last in the list of selected points"
+		it "should tell each point knows if it was initially connected to its next/prev selected point"
+
+	describe "_ensureConfinementsAreUpToDate()", ->
+
+		it "should recalculate each point's confinements if the confinements are invalidated"
+		it "should calculate each point's confinements as its proximity to the prev/next non-selected point"
