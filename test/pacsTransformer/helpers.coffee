@@ -101,6 +101,8 @@ module.exports.pacsToString = pacsToString = (pacs) ->
 
 				str += '*'
 
+				curTime += 100
+
 		else
 
 			inConnection = yes

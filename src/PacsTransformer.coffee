@@ -135,4 +135,16 @@ module.exports = class PacsTransformer
 
 			@_confinementsInvalid = yes
 
-		console.log offConfinement
+			do @_reOrder
+
+		else
+
+			console.log 'in confinement'
+
+		this
+
+	_reOrder: ->
+
+		if not @_actionQueue.hasStep 'applyProps'
+
+			console.log 'no'

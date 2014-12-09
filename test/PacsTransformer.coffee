@@ -2,7 +2,24 @@ PacsTransformer = require '../src/PacsTransformer'
 PointsSelection = require '../src/PointsSelection'
 BezierPacs = require '../src/BezierPacs'
 {stringToStuff, pacsToString} = require './pacsTransformer/helpers'
-test = it
+
+example = (opts) ->
+
+	{from, to, fn} = opts
+
+	if matches = fn.match /^\+([0-9]+)$/
+
+		func = (p) -> p.time += parseInt matches[1]
+
+	else if matches = fn.match /^\-([0-9]+)$/
+
+		func = (p) -> p.time -= parseInt matches[1]
+
+	it "example: '#{from}' > [#{fn}] -> '#{to}'", ->
+
+		{pacs, transformer} = stringToStuff from
+		transformer.transform func
+		to.should.equal pacsToString pacs
 
 require('chai').use(require 'chai-fuzzy').should()
 
@@ -16,23 +33,98 @@ describe "PacsTransformer", ->
 
 		it "should accept a pacs object"
 
-	describe "general", ->
-
-		it "should work", ->
-
-			s = "x-a y-z d"
-
-			console.log s
-
-			{pacs, selection, transformer} = stringToStuff s
-
-			transformer.transform (p) ->
-
-				p.time += 100
-
 	describe "transform()", ->
 
 		it "should apply a transform on each point's initial state"
+
+		describe "when points are moving inside their confinements", ->
+
+			describe "for single points", ->
+
+				describe "if the point is not connected to an external point, it should just update its props.", ->
+
+					example
+
+						from: "a  x  y"
+						to:   "a   x y"
+						fn: "+100"
+
+					example
+
+						from: "a  x  y"
+						to:   "a x   y"
+						fn: "-100"
+
+				describe "if the point is connected to external points, it should keep the connections", ->
+
+					example
+
+						from: "a--x--y"
+						to:   "a---x-y"
+						fn: "+100"
+
+					example
+
+						from: "a--x--y"
+						to:   "a-x---y"
+						fn: "-100"
+
+		# describe "cases", ->
+
+		# 	it "'x a' (+200) -> ' a x'", ->
+
+		# 		{pacs, selection, transformer} = stringToStuff 'x a'
+
+		# 		transformer.transform (p) -> p.time += 200
+
+		# 		pacsToString(pacs).should.equal ' a x'
+
+		# 	it "'a-x-b' (+200) -> 'a--b x'"
+
+		# 	movement = "+200"
+		# 	from = 	"a-x y-b"
+		# 	to = 		"a---x b y"
+
+		# 	movement = "scale(0.5)"
+		# 	from = 	"a-x y-b"
+		# 	to = 		"a--xy-b"
+
+		# 	movement = "scale(-1)"
+		# 	from = 	"a-x y-b"
+		# 	to = 		"a-y x-b"
+
+		# 	movement = "+200"
+		# 	from = 	"a-x-b" # a is connected to b
+		# 	to = 		"a---b x"
+
+		# 	movement = "+200"
+		# 	from = 	"a-x-y-b"
+		# 	to = 		"a---x-b-y"
+		# 	to = 		"a---x b y"
+
+		# 	movement = "+200"
+		# 	from = 	"x--y a"
+		# 	to = 		"   x-a-y"
+
+		# 	from = 	"a x-y b"
+		# 	to = 		"a     b x-y"
+
+		# 	from = 	"a x--y b"
+		# 	to = 		"a    x-b-y"
+
+		# 	from = 	"a x---y b c"
+		# 	to = 		"a     x-b c-y"
+
+		# 	"a-x b"
+		# 	"a   b x"
+
+		# 	"   a-x b"
+		# 	" x a   b"
+
+
+
+
+
 
 	describe "_ensureInitialModelIsReady()", ->
 
