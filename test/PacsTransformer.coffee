@@ -15,7 +15,7 @@ example = (opts) ->
 
 		func = (p) -> p.time -= parseInt matches[1]
 
-	it "example: '#{from}' > [#{fn}] -> '#{to}'", ->
+	it "Example: '#{from}' > [#{fn}] -> '#{to}'", ->
 
 		{pacs, transformer} = stringToStuff from
 		transformer.transform func
@@ -41,33 +41,71 @@ describe "PacsTransformer", ->
 
 			describe "for single points", ->
 
-				describe "if the point is not connected to an external point, it should just update its props.", ->
+				describe "if the point is not connected to an unselected point, we should just update its props.", ->
 
 					example
 
-						from: "a  x  y"
-						to:   "a   x y"
+						from: "a  x  b"
+						to:   "a   x b"
 						fn: "+100"
 
 					example
 
-						from: "a  x  y"
-						to:   "a x   y"
+						from: "a  x  b"
+						to:   "a x   b"
 						fn: "-100"
-
-				describe "if the point is connected to external points, it should keep the connections", ->
 
 					example
 
-						from: "a--x--y"
-						to:   "a---x-y"
+						from: "a  x  b y"
+						to:   "a   x b  y"
 						fn: "+100"
 
 					example
 
-						from: "a--x--y"
-						to:   "a-x---y"
+						from: "a  x  b y  c"
+						to:   "a   x b  y c"
+						fn: "+100"
+
+				describe "if the point is connected to unselected points, we should keep the connections.", ->
+
+					example
+
+						from: "a--x--b"
+						to:   "a---x-b"
+						fn: "+100"
+
+					example
+
+						from: "a--x--b"
+						to:   "a-x---b"
 						fn: "-100"
+
+					example
+
+						from: "a--x--b-y"
+						to:   "a---x-b--y"
+						fn: "+100"
+
+					example
+
+						from: "a--x--b-y  c"
+						to:   "a---x-b--y c"
+						fn: "+100"
+
+					example
+
+						from: "a--x--b-y--c"
+						to:   "a---x-b--y-c"
+						fn: "+100"
+
+			# describe "for multiple points", ->
+
+			# 	example
+
+			# 		from: "a  x  y"
+			# 		to:   "a   x y"
+			# 		fn: "+100"
 
 		# describe "cases", ->
 
