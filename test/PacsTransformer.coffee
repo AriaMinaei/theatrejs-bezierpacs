@@ -99,13 +99,41 @@ describe "PacsTransformer", ->
 						to:   "a---x-b--y-c"
 						fn: "+100"
 
-			# describe "for multiple points", ->
+			describe "for multiple points", ->
 
-			# 	example
+				describe "we should preserve internal connections.", ->
 
-			# 		from: "a  x  y"
-			# 		to:   "a   x y"
-			# 		fn: "+100"
+					example
+
+						from: "a  x y  b"
+						to:   "a   x y b"
+						fn: "+100"
+
+					example
+
+						from: "a  x-y  b"
+						to:   "a   x-y b"
+						fn: "+100"
+
+				describe "we should preserve connections from selected points to unselected points", ->
+
+					example
+
+						from: "a--x y--b"
+						to:   "a---x y-b"
+						fn: "+100"
+
+					example
+
+						from: "a--x-y--b"
+						to:   "a---x-y-b"
+						fn: "+100"
+
+					example
+
+						from: "a--x-y--b-z-w"
+						to:   "a---x-y-b--z-w"
+						fn: "+100"
 
 		# describe "cases", ->
 
