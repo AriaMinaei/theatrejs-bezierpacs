@@ -35,6 +35,14 @@ describe "PacsTransformer", ->
 
 	describe "transform()", ->
 
+		example
+
+			from: "a  x y-b-c-z  b"
+			to:   "a   x y-b-c-z b"
+			fn: "+100"
+
+		return
+
 		it "should apply a transform on each point's initial state"
 
 		describe "when points are moving inside their confinements", ->
@@ -135,61 +143,42 @@ describe "PacsTransformer", ->
 						to:   "a---x-y-b--z-w"
 						fn: "+100"
 
-		# describe "cases", ->
+		describe "when points are moving out of their confinements", ->
 
-		# 	it "'x a' (+200) -> ' a x'", ->
+			# Alright, so, we don't know exactly how pacs should behaved if a bunch
+			# of points are selected and moved around. So for now, we'll just go with
+			# these simple rules, until we can play with the interface and see if these
+			# rules make sense.
+			#
+			#  * We'll keep continuous connections among external points alive
+			#  * We'll keep continous connections among internal points alive
+			#  * We'll keep the in-confinement rules alive when applicable
 
-		# 		{pacs, selection, transformer} = stringToStuff 'x a'
+			describe "for single points", ->
 
-		# 		transformer.transform (p) -> p.time += 200
+				example
 
-		# 		pacsToString(pacs).should.equal ' a x'
+					from: "a x b"
+					to:   "a   b x"
+					fn: "+200"
 
-		# 	it "'a-x-b' (+200) -> 'a--b x'"
+				example
 
-		# 	movement = "+200"
-		# 	from = 	"a-x y-b"
-		# 	to = 		"a---x b y"
+					from: "a-x b"
+					to:   "a   b x"
+					fn: "+200"
 
-		# 	movement = "scale(0.5)"
-		# 	from = 	"a-x y-b"
-		# 	to = 		"a--xy-b"
+				example
 
-		# 	movement = "scale(-1)"
-		# 	from = 	"a-x y-b"
-		# 	to = 		"a-y x-b"
+					from: "a   b-x"
+					to:   "a x b"
+					fn: "-200"
 
-		# 	movement = "+200"
-		# 	from = 	"a-x-b" # a is connected to b
-		# 	to = 		"a---b x"
+				example
 
-		# 	movement = "+200"
-		# 	from = 	"a-x-y-b"
-		# 	to = 		"a---x-b-y"
-		# 	to = 		"a---x b y"
-
-		# 	movement = "+200"
-		# 	from = 	"x--y a"
-		# 	to = 		"   x-a-y"
-
-		# 	from = 	"a x-y b"
-		# 	to = 		"a     b x-y"
-
-		# 	from = 	"a x--y b"
-		# 	to = 		"a    x-b-y"
-
-		# 	from = 	"a x---y b c"
-		# 	to = 		"a     x-b c-y"
-
-		# 	"a-x b"
-		# 	"a   b x"
-
-		# 	"   a-x b"
-		# 	" x a   b"
-
-
-
-
+					from: "a-x-b"
+					to:   "a---b x"
+					fn: "+200"
 
 
 	describe "_ensureInitialModelIsReady()", ->
@@ -198,11 +187,71 @@ describe "PacsTransformer", ->
 
 	describe "_buildInitialModel()", ->
 
-		it "should build a list of TransformablePoint-s"
-		it "should build the list in order"
-		it "should also build a map with each point's _idInPacs as keys"
-		it "should tell each point if it is the first or last in the list of selected points"
-		it "should tell each point knows if it was initially connected to its next/prev selected point"
+		it "should build a list of TransformablePoint-s", ->
+
+			{pacs, selection, transformer} = stringToStuff "a x b y c z"
+
+			transformer._ensureInitialModelIsReady()
+
+			transformer._pointsArray[0].initialPoint.name.should.equal 'x'
+			transformer._pointsArray[1].initialPoint.name.should.equal 'y'
+			transformer._pointsArray[2].initialPoint.name.should.equal 'z'
+
+		it "should build the list in order", ->
+
+			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
+
+			selection.clear()
+			selection.addPoint selectedPoints.y
+			selection.addPoint selectedPoints.x
+
+			transformer._ensureInitialModelIsReady()
+			transformer._pointsArray[0].initialPoint.name.should.equal 'x'
+			transformer._pointsArray[1].initialPoint.name.should.equal 'y'
+
+		it "should also build a map with each point's _idInPacs as keys", ->
+
+			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
+
+			transformer._ensureInitialModelIsReady()
+
+			transformer._pointsMap[1].initialPoint.name.should.equal 'x'
+			transformer._pointsMap[2].initialPoint.name.should.equal 'y'
+
+		it "should tell each point if it is the first or last in the list of selected points", ->
+
+			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
+
+			transformer._ensureInitialModelIsReady()
+
+			transformer._pointsArray[0].firstSelectedPoint.should.equal yes
+			transformer._pointsArray[1].firstSelectedPoint.should.equal no
+
+			transformer._pointsArray[0].lastSelectedPoint.should.equal no
+			transformer._pointsArray[1].lastSelectedPoint.should.equal yes
+
+		it "should tell each point if it was connected to its direct unselected neighbour"
+
+		it "should tell each point knows if it was initially directly or indirectly connected to its next/prev selected point", ->
+
+			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x-y b z-c-w u"
+
+			transformer._ensureInitialModelIsReady()
+
+			transformer._pointsArray[0].wasConnectedToPrevSelectedPoint.should.equal no
+			transformer._pointsArray[0].wasConnectedToNextSelectedPoint.should.equal yes
+
+			transformer._pointsArray[1].wasConnectedToPrevSelectedPoint.should.equal yes
+			transformer._pointsArray[1].wasConnectedToNextSelectedPoint.should.equal no
+
+			transformer._pointsArray[2].wasConnectedToPrevSelectedPoint.should.equal no
+			transformer._pointsArray[2].wasConnectedToNextSelectedPoint.should.equal yes
+
+			transformer._pointsArray[3].wasConnectedToPrevSelectedPoint.should.equal yes
+			transformer._pointsArray[3].wasConnectedToNextSelectedPoint.should.equal no
+
+			transformer._pointsArray[4].wasConnectedToPrevSelectedPoint.should.equal no
+			transformer._pointsArray[4].wasConnectedToNextSelectedPoint.should.equal no
 
 	describe "_ensureConfinementsAreUpToDate()", ->
 

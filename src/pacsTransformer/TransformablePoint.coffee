@@ -1,11 +1,17 @@
 module.exports = class TransformablePoint
 
-	constructor: (@initialPoint, @wasConnectedToNextSelectedPoint, @wasConnectedToPrevSelectedPoint, @first, @last) ->
+	constructor: (@initialPoint) ->
 
 		@_initialTime = @initialPoint._time
 		@_initialValue = @initialPoint._value
 		@_initialLeftHandler = new Float64Array @initialPoint._leftHandler
 		@_initialRightHandler = new Float64Array @initialPoint._rightHandler
+
+		@wasConnectedToPrevSelectedPoint = no
+		@wasConnectedToNextSelectedPoint = no
+
+		@firstSelectedPoint = no
+		@lastSelectedPoint = no
 
 		@leftHandler = new Float64Array 2
 		@rightHandler = new Float64Array 2

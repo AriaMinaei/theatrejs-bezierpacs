@@ -216,4 +216,4 @@ module.exports = class Point extends Item
 
 			needConnector = !needConnector
 
-		return
+		yes
