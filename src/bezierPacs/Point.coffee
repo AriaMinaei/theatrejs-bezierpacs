@@ -200,3 +200,20 @@ module.exports = class Point extends Item
 		@events._emit 'disconnectionFromRight'
 
 		@_rightConnector = null
+
+	isEventuallyConnectedTo: (targetPoint) ->
+
+		myIndex = @_pacs.getItemIndex this
+		targetIndex = @_pacs.getItemIndex targetPoint
+
+		needConnector = no
+
+		for index in [myIndex..targetIndex]
+
+			if needConnector
+
+				return no unless @_pacs.getItemByIndex(index).isConnector()
+
+			needConnector = !needConnector
+
+		return
