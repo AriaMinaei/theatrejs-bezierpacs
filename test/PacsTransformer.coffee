@@ -22,6 +22,7 @@ example = (opts) ->
 		to.should.equal pacsToString pacs
 
 require('chai').use(require 'chai-fuzzy').should()
+expect = require('chai').expect
 
 describe "PacsTransformer", ->
 
@@ -230,28 +231,47 @@ describe "PacsTransformer", ->
 			transformer._pointsArray[0].lastSelectedPoint.should.equal no
 			transformer._pointsArray[1].lastSelectedPoint.should.equal yes
 
-		it "should tell each point if it was connected to its direct unselected neighbour"
+		it "should tell each point if it was connected to its direct unselected neighbour", ->
 
-		it "should tell each point knows if it was initially directly or indirectly connected to its next/prev selected point", ->
-
-			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x-y b z-c-w u"
+			{pacs, selection, transformer, selectedPoints, idOf, transformablePoint} = stringToStuff "a-x y-b z-w-c-u"
 
 			transformer._ensureInitialModelIsReady()
 
-			transformer._pointsArray[0].wasConnectedToPrevSelectedPoint.should.equal no
-			transformer._pointsArray[0].wasConnectedToNextSelectedPoint.should.equal yes
+			expect(transformablePoint('x').prevConnectedUnselectedNeighbour).to.equal idOf('a')
+			expect(transformablePoint('x').nextConnectedUnselectedNeighbour).to.equal null
 
-			transformer._pointsArray[1].wasConnectedToPrevSelectedPoint.should.equal yes
-			transformer._pointsArray[1].wasConnectedToNextSelectedPoint.should.equal no
+			expect(transformablePoint('y').prevConnectedUnselectedNeighbour).to.equal null
+			expect(transformablePoint('y').nextConnectedUnselectedNeighbour).to.equal idOf('b')
 
-			transformer._pointsArray[2].wasConnectedToPrevSelectedPoint.should.equal no
-			transformer._pointsArray[2].wasConnectedToNextSelectedPoint.should.equal yes
+			expect(transformablePoint('z').prevConnectedUnselectedNeighbour).to.equal null
+			expect(transformablePoint('z').nextConnectedUnselectedNeighbour).to.equal null
 
-			transformer._pointsArray[3].wasConnectedToPrevSelectedPoint.should.equal yes
-			transformer._pointsArray[3].wasConnectedToNextSelectedPoint.should.equal no
+			expect(transformablePoint('w').prevConnectedUnselectedNeighbour).to.equal null
+			expect(transformablePoint('w').nextConnectedUnselectedNeighbour).to.equal null
 
-			transformer._pointsArray[4].wasConnectedToPrevSelectedPoint.should.equal no
-			transformer._pointsArray[4].wasConnectedToNextSelectedPoint.should.equal no
+			expect(transformablePoint('u').prevConnectedUnselectedNeighbour).to.equal null
+			expect(transformablePoint('u').nextConnectedUnselectedNeighbour).to.equal null
+
+		it "should tell each point knows if it was initially directly or indirectly connected to its next/prev selected point", ->
+
+			{pacs, selection, transformer, selectedPoints, transformablePoint} = stringToStuff "a x-y b z-c-w u"
+
+			transformer._ensureInitialModelIsReady()
+
+			transformablePoint('x').wasConnectedToPrevSelectedPoint.should.equal no
+			transformablePoint('x').wasConnectedToNextSelectedPoint.should.equal yes
+
+			transformablePoint('y').wasConnectedToPrevSelectedPoint.should.equal yes
+			transformablePoint('y').wasConnectedToNextSelectedPoint.should.equal no
+
+			transformablePoint('z').wasConnectedToPrevSelectedPoint.should.equal no
+			transformablePoint('z').wasConnectedToNextSelectedPoint.should.equal yes
+
+			transformablePoint('w').wasConnectedToPrevSelectedPoint.should.equal yes
+			transformablePoint('w').wasConnectedToNextSelectedPoint.should.equal no
+
+			transformablePoint('u').wasConnectedToPrevSelectedPoint.should.equal no
+			transformablePoint('u').wasConnectedToNextSelectedPoint.should.equal no
 
 	describe "_ensureConfinementsAreUpToDate()", ->
 

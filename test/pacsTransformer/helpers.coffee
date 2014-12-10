@@ -14,6 +14,14 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 	unselectedPoints = stuff.unselectedPoints = {}
 	listOfAllPoints = stuff.listOfAllPoints = []
 
+	idOf = stuff.idOf = (name) -> allPoints[name]._idInPacs
+
+	stuff.transformablePoint = (name) ->
+
+		transformer._ensureInitialModelIsReady()
+
+		transformer._pointsMap[idOf(name)]
+
 	transformer.useSelection selection
 
 	curTime = 0

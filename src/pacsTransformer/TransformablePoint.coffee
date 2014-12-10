@@ -10,6 +10,9 @@ module.exports = class TransformablePoint
 		@wasConnectedToPrevSelectedPoint = no
 		@wasConnectedToNextSelectedPoint = no
 
+		@prevConnectedUnselectedNeighbour = null
+		@nextConnectedUnselectedNeighbour = null
+
 		@firstSelectedPoint = no
 		@lastSelectedPoint = no
 

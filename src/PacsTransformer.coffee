@@ -51,23 +51,33 @@ module.exports = class PacsTransformer
 
 		for p, i in orderedPoints
 
+			transformablePoint = new TransformablePoint p
+
 			first = i is 0
 			last = i is length - 1
-
-			connectedBack = not first and p.isEventuallyConnectedTo orderedPoints[i-1]
-
-			connectedForward = not last and p.isEventuallyConnectedTo orderedPoints[i+1]
-
-			transformablePoint = new TransformablePoint p
 
 			transformablePoint.firstSelectedPoint = first
 			transformablePoint.lastSelectedPoint = last
 
+			connectedBack = not first and p.isEventuallyConnectedTo orderedPoints[i-1]
+			connectedForward = not last and p.isEventuallyConnectedTo orderedPoints[i+1]
+
 			transformablePoint.wasConnectedToPrevSelectedPoint = connectedBack
 			transformablePoint.wasConnectedToNextSelectedPoint = connectedForward
 
-			@_pointsArray.push transformablePoint
+			unless connectedBack
 
+				c = p.getLeftConnector()
+
+				if c? then transformablePoint.prevConnectedUnselectedNeighbour = c.getLeftPoint()._idInPacs
+
+			unless connectedForward
+
+				c = p.getRightConnector()
+
+				if c? then transformablePoint.nextConnectedUnselectedNeighbour = c.getRightPoint()._idInPacs
+
+			@_pointsArray.push transformablePoint
 			@_pointsMap[transformablePoint.idInPacs] = transformablePoint
 
 		return
