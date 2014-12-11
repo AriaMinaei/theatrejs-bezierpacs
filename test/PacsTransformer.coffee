@@ -36,17 +36,11 @@ describe "PacsTransformer", ->
 
 	describe "transform()", ->
 
-		example
-
-			from: "a  x y-b-c-z  b"
-			to:   "a   x y-b-c-z b"
-			fn: "+100"
-
-		return
-
 		it "should apply a transform on each point's initial state"
 
-		describe "when points are moving inside their confinements", ->
+		describe "for points moving in confinement", ->
+
+			return
 
 			describe "for single points", ->
 
@@ -144,7 +138,7 @@ describe "PacsTransformer", ->
 						to:   "a---x-y-b--z-w"
 						fn: "+100"
 
-		describe "when points are moving out of their confinements", ->
+		describe "for points moving out of confinement", ->
 
 			# Alright, so, we don't know exactly how pacs should behaved if a bunch
 			# of points are selected and moved around. So for now, we'll just go with
@@ -155,25 +149,9 @@ describe "PacsTransformer", ->
 			#  * We'll keep continous connections among internal points alive
 			#  * We'll keep the in-confinement rules alive when applicable
 
-			describe "for single points", ->
+			describe "should try to keep external to extenral connections alive", ->
 
-				example
-
-					from: "a x b"
-					to:   "a   b x"
-					fn: "+200"
-
-				example
-
-					from: "a-x b"
-					to:   "a   b x"
-					fn: "+200"
-
-				example
-
-					from: "a   b-x"
-					to:   "a x b"
-					fn: "-200"
+				return
 
 				example
 
@@ -181,10 +159,49 @@ describe "PacsTransformer", ->
 					to:   "a---b x"
 					fn: "+200"
 
+				example
+
+					from: "a-x-y-b"
+					to:   "a-----b x-y"
+					fn: "+300"
+
+				example
+
+					from: "a x b---c"
+					to:   "a   b-x-c"
+					fn: "+200"
+
+				example
+
+					from: "a x b-y-c"
+					to:   "a   b-x-c y"
+					fn: "+200"
+
+				example
+
+					from: "a x b-y-z-c"
+					to:   "a   b--x--c y-z"
+					fn: "+400"
+
+			describe "should try to keep internal to internal connections alive", ->
+
+				example
+
+					from: "a x---y b"
+					to:   "a    x--b-y"
+					fn: "+300"
+
+				return
+
+				example
+
+					from: "a x-----y b c"
+					to:   "a       x-b-c---y"
+					fn: "+500"
 
 	describe "_ensureInitialModelIsReady()", ->
 
-		it "should build it the initial model if it's is not ready"
+		it "should build the initial model if it hasn't already"
 
 	describe "_buildInitialModel()", ->
 
