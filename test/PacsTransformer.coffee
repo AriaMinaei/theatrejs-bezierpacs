@@ -191,6 +191,17 @@ describe "PacsTransformer", ->
 					to:   "a    x--b-y"
 					fn: "+300"
 
+				# So far, the procedure is:
+				# * dcInternalToExternalConnections
+				# * dcInternalConnections
+				# * getOffSequence
+				# * remakeExternalConnections
+				# * applyProps
+				# * dcExternalConnectionsToBeInterjected
+				# * getInSequence
+				# * remakeInterjectedExternalConnections
+				# * remakeInternalConnections
+
 				return
 
 				example
