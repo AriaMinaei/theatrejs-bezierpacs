@@ -1,8 +1,6 @@
 PointsSelection = require '../src/PointsSelection'
 BezierPacs = require '../src/BezierPacs'
 
-require('chai').use(require 'chai-fuzzy').should()
-
 describe "PointsSelection", ->
 
 	describe "constructor()", ->
