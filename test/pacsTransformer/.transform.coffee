@@ -1,5 +1,5 @@
 {stringToStuff, pacsToString} = require './helpers'
-example = (opts) ->
+example = (opts, skip = no) ->
 
 	{from, to, fn} = opts
 
@@ -11,11 +11,15 @@ example = (opts) ->
 
 		func = (p) -> p.time -= parseInt matches[1]
 
-	it "Example: '#{from}' > [#{fn}] -> '#{to}'", ->
+	testFunc = if skip then it.skip else it
+
+	testFunc "Example: '#{from}' > [#{fn}] -> '#{to}'", ->
 
 		{pacs, transformer} = stringToStuff from
 		transformer.transform func
 		to.should.equal pacsToString pacs
+
+_example = (opts) -> example opts, yes
 
 describe "PacsTransformer", ->
 
@@ -134,33 +138,31 @@ describe "PacsTransformer", ->
 
 			describe "should try to keep external to extenral connections alive", ->
 
-				return
-
-				example
+				_example
 
 					from: "a-x-b"
 					to:   "a---b x"
 					fn: "+200"
 
-				example
+				_example
 
 					from: "a-x-y-b"
 					to:   "a-----b x-y"
 					fn: "+300"
 
-				example
+				_example
 
 					from: "a x b---c"
 					to:   "a   b-x-c"
 					fn: "+200"
 
-				example
+				_example
 
 					from: "a x b-y-c"
 					to:   "a   b-x-c y"
 					fn: "+200"
 
-				example
+				_example
 
 					from: "a x b-y-z-c"
 					to:   "a   b--x--c y-z"
@@ -168,7 +170,7 @@ describe "PacsTransformer", ->
 
 			describe "should try to keep internal to internal connections alive", ->
 
-				example
+				_example
 
 					from: "a x---y b"
 					to:   "a    x--b-y"
@@ -185,12 +187,8 @@ describe "PacsTransformer", ->
 				# * remakeInterjectedExternalConnections
 				# * remakeInternalConnections
 
-				return
-
-				example
+				_example
 
 					from: "a x-----y b c"
 					to:   "a       x-b-c---y"
 					fn: "+500"
-
-

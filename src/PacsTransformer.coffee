@@ -1,4 +1,5 @@
 TransformablePoint = require './pacsTransformer/TransformablePoint'
+ActionQueue = require './ActionQueue'
 
 module.exports = class PacsTransformer
 
@@ -6,6 +7,20 @@ module.exports = class PacsTransformer
 
 		@_pointsArray = []
 		do @clear
+
+		stepOrder = [
+			'dcInternalToExternalConnections'
+			'dcInternalConnections'
+			'getOffSequence'
+			'remakeExternalConnections'
+			'applyProps'
+			'dcExternalConnectionsToBeInterjected'
+			'getInSequence'
+			'remakeInterjectedExternalConnections'
+			'remakeInternalConnections'
+		]
+
+		@_actionQueue = new ActionQueue stepOrder
 
 	clear: ->
 
@@ -151,12 +166,64 @@ module.exports = class PacsTransformer
 
 		else
 
-			console.log 'in confinement'
+			do @_applyProps
 
 		this
 
+	_applyProps: ->
+
+		@_actionQueue.startStep 'applyProps'
+
+		p = @_pointsArray[0]
+
+		forward = p.time > p._initialTime
+
+		if forward
+
+			for i in [(@_pointsArray.length - 1)..0]
+
+				p = @_pointsArray[i]
+
+				p.applyToInitialPoint()
+
+		else
+
+			for p in @_pointsArray
+
+				p.applyToInitialPoint()
+
+
+		@_actionQueue.endStep 'applyProps'
+
 	_reOrder: ->
 
-		if not @_actionQueue.hasStep 'applyProps'
+		if not @_actionQueue.haveTakenStepsBefore 'applyProps'
 
-			console.log 'no'
+			do @_dcInternalToExternalConnections
+			do @_dcInternalConnections
+			do @_getOffSequence
+			do @_remakeExternalConnections
+
+		@_actionQueue.rollBackTo 'applyProps'
+
+		do @_applyProps
+		do @_dcExternalConnectionsToBeInterjected
+		do @_getInSequence
+		do @_remakeInterjectedExternalConnections
+		do @_remakeInternalConnections
+
+	_dcInternalToExternalConnections: ->
+
+	_dcInternalConnections: ->
+
+	_getOffSequence: ->
+
+	_remakeExternalConnections: ->
+
+	_dcExternalConnectionsToBeInterjected: ->
+
+	_getInSequence: ->
+
+	_remakeInterjectedExternalConnections: ->
+
+	_remakeInternalConnections: ->
