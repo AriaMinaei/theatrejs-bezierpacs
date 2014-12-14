@@ -18,6 +18,8 @@ example = (opts, skip = no) ->
 		{pacs, transformer} = stringToStuff from
 		transformer.transform func
 		to.should.equal pacsToString pacs
+		transformer.transform (p) ->
+		from.should.equal pacsToString pacs
 
 _example = (opts) -> example opts, yes
 

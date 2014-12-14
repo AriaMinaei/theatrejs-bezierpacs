@@ -170,7 +170,13 @@ module.exports = class PacsTransformer
 
 		this
 
+	undo: ->
+
+
+
 	_applyProps: ->
+
+		isFirstTimeSettingTime = not @_actionQueue.haveTakenStepsBefore 'applyProps'
 
 		@_actionQueue.startStep 'applyProps'
 
@@ -184,13 +190,23 @@ module.exports = class PacsTransformer
 
 				p = @_pointsArray[i]
 
-				p.applyToInitialPoint()
+				@_actionQueue
+				.getActionUnitFor 'point.applyProps', p, {ignoreSettingBackwardProps: not isFirstTimeSettingTime}
+				.captureProps()
+				.applyForward()
+
+				# p.applyToInitialPoint()
 
 		else
 
 			for p in @_pointsArray
 
-				p.applyToInitialPoint()
+				@_actionQueue
+				.getActionUnitFor 'point.applyProps', p, {ignoreSettingBackwardProps: not isFirstTimeSettingTime}
+				.captureProps()
+				.applyForward()
+
+				# p.applyToInitialPoint()
 
 
 		@_actionQueue.endStep 'applyProps'
