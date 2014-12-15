@@ -185,6 +185,64 @@ module.exports = class Point extends Item
 
 		@events._emit 'connectionToLeft', @_leftConnector
 
+	connectToLeft: ->
+
+		if @_leftConnector?
+
+			throw Error "Already connected to the left"
+
+		beforePoint = @_pacs.getItemBeforeItem this
+
+		unless beforePoint?
+
+			throw Error "There are no points to the left to connect to"
+
+		@_pacs.createConnector()
+		.setTime(beforePoint._time)
+		.getRecognizedBy @_pacs
+		.getInSequence()
+
+		this
+
+	connectToRight: ->
+
+		if @_rightConnector?
+
+			throw Error "Already connected to the right"
+
+		afterPoint = @_pacs.getItemAfterItem this
+
+		unless afterPoint?
+
+			throw Error "There are no points to the right to connect to"
+
+		@_pacs.createConnector()
+		.setTime(@_time)
+		.getRecognizedBy @_pacs
+		.getInSequence()
+
+		this
+
+	disconnectFromLeft: ->
+
+		unless @_leftConnector?
+
+			throw Error "There are no left connections to disconnect"
+
+		@_leftConnector.eliminate()
+
+		this
+
+	disconnectFromRight: ->
+
+		unless @_rightConnector?
+
+			throw Error "There are no right connections to disconnect"
+
+		@_rightConnector.eliminate()
+
+		this
+
 	_unsetLeftConnector: ->
 
 		@events._emit 'disconnectionFromLeft'

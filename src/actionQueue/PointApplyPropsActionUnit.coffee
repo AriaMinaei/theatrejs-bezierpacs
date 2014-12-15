@@ -5,7 +5,7 @@ module.exports = class PointApplyPropsActionUnit
 
 		"point.applyProps[#{point._idInPacs}]"
 
-	constructor: (@_actionQueue, @_point, @_unitProps) ->
+	constructor: (@_actionQueue, @_transformablePoint, @_unitProps) ->
 
 		@_backwardProps = {}
 		@_forwardProps = {}
@@ -14,21 +14,21 @@ module.exports = class PointApplyPropsActionUnit
 
 	captureProps: ->
 
-		@_forwardProps.time = @_point.time
-		@_forwardProps.value = @_point.value
-		@_forwardProps.leftHandler = new Float32Array @_point.leftHandler
-		@_forwardProps.rightHandler = new Float32Array @_point.rightHandler
+		@_forwardProps.time = @_transformablePoint.time
+		@_forwardProps.value = @_transformablePoint.value
+		@_forwardProps.leftHandler = new Float32Array @_transformablePoint.leftHandler
+		@_forwardProps.rightHandler = new Float32Array @_transformablePoint.rightHandler
 
 		return this if @_unitProps.ignoreSettingBackwardProps
 
-		@_backwardProps.time = @_point._initialTime
-		@_backwardProps.value = @_point._initialValue
-		@_backwardProps.leftHandler = new Float32Array @_point._initialLeftHandler
-		@_backwardProps.rightHandler = new Float32Array @_point._initialRightHandler
+		@_backwardProps.time = @_transformablePoint._initialTime
+		@_backwardProps.value = @_transformablePoint._initialValue
+		@_backwardProps.leftHandler = new Float32Array @_transformablePoint._initialLeftHandler
+		@_backwardProps.rightHandler = new Float32Array @_transformablePoint._initialRightHandler
 
 		this
 
 	applyForward: ->
 
-		@_point.applyToInitialPoint()
+		@_transformablePoint.applyToInitialPoint()
 

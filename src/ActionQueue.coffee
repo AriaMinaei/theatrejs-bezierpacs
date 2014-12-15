@@ -1,5 +1,8 @@
 Step = require './actionQueue/Step'
 PointApplyPropsActionUnit = require './actionQueue/PointApplyPropsActionUnit'
+PointDisconnectLeftActionUnit = require './actionQueue/PointDisconnectLeftActionUnit'
+PointDisconnectRightActionUnit = require './actionQueue/PointDisconnectRightActionUnit'
+PointGetOffSequenceActionUnit = require './actionQueue/PointGetOffSequenceActionUnit'
 
 
 module.exports = class ActionQueue
@@ -93,3 +96,6 @@ module.exports = class ActionQueue
 	@_recognizedActionUnits:
 
 		'point.applyProps': PointApplyPropsActionUnit
+		'point.disconnectLeft': PointDisconnectLeftActionUnit
+		'point.disconnectRight': PointDisconnectRightActionUnit
+		'point.getOffSequence': PointGetOffSequenceActionUnit

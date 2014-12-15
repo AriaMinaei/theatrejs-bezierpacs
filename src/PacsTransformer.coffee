@@ -20,6 +20,8 @@ module.exports = class PacsTransformer
 			'remakeInternalConnections'
 		]
 
+		@_listOfUnselectedPointsConnectedToRightInterjectedBySelectedPoints = []
+
 		@_actionQueue = new ActionQueue stepOrder
 
 	clear: ->
@@ -172,8 +174,6 @@ module.exports = class PacsTransformer
 
 	undo: ->
 
-
-
 	_applyProps: ->
 
 		isFirstTimeSettingTime = not @_actionQueue.haveTakenStepsBefore 'applyProps'
@@ -215,7 +215,7 @@ module.exports = class PacsTransformer
 
 		if not @_actionQueue.haveTakenStepsBefore 'applyProps'
 
-			do @_dcInternalToExternalConnections
+			do @_dcExternalEventualConnectionsInterjectedBySelectedPoints
 			do @_dcInternalConnections
 			do @_getOffSequence
 			do @_remakeExternalConnections
@@ -228,11 +228,86 @@ module.exports = class PacsTransformer
 		do @_remakeInterjectedExternalConnections
 		do @_remakeInternalConnections
 
-	_dcInternalToExternalConnections: ->
+	_dcExternalEventualConnectionsInterjectedBySelectedPoints: ->
+
+		unselectedPointsToConsider = []
+
+		firstLeftConnector = @_pointsArray[0].initialPoint.getLeftConnector()
+		if firstLeftConnector?
+
+			unselectedPointsToConsider.push firstLeftConnector.getLeftPoint()
+
+		fromIndex = @pacs.getItemIndex(@_pointsArray[0].initialPoint) + 1
+		toIndex = @pacs.getItemIndex(@_pointsArray[@_pointsArray.length - 1].initialPoint) - 1
+
+		fromIndex = Math.min fromIndex, toIndex
+		toIndex = Math.max fromIndex, toIndex
+
+		for i in [fromIndex..toIndex]
+
+			item = @pacs.getItemByIndex i
+
+			unless item?
+
+				throw Error "#{i}???"
+
+			continue if item.isConnector()
+
+			continue if @_pointsMap[item._idInPacs]?
+
+			unselectedPointsToConsider.push item
+
+		lastSelectedPoint = @_pointsArray[@_pointsArray.length - 1].initialPoint
+
+		if lastSelectedPoint.getRightConnector()?
+
+			unselectedPointsToConsider.push lastSelectedPoint.getRightConnector().getRightPoint()
+
+		@_listOfUnselectedPointsConnectedToRightInterjectedBySelectedPoints.length = 0
+
+		return if unselectedPointsToConsider.length < 2
+
+		list = @_listOfUnselectedPointsConnectedToRightInterjectedBySelectedPoints
+
+		for i in [0..unselectedPointsToConsider.length - 2]
+
+			curPoint = unselectedPointsToConsider[i]
+			nextPoint = unselectedPointsToConsider[i + 1]
+
+			if curPoint.isEventuallyConnectedTo nextPoint
+
+				list.push curPoint._idInPacs
+
+		return
 
 	_dcInternalConnections: ->
 
 	_getOffSequence: ->
+
+		@_actionQueue.startStep 'getOffSequence'
+
+		for p in @_pointsArray
+
+			if p.initialPoint.getLeftConnector()?
+
+				@_actionQueue
+				.getActionUnitFor 'point.disconnectLeft', p.initialPoint
+				.applyForward()
+
+			if p.initialPoint.getRightConnector()?
+
+				@_actionQueue
+				.getActionUnitFor 'point.disconnectRight', p.initialPoint
+				.applyForward()
+
+			@_actionQueue
+			.getActionUnitFor 'point.getOffSequence', p.initialPoint
+			.applyForward()
+
+		@_actionQueue.endStep 'getOffSequence'
+
+
+		return
 
 	_remakeExternalConnections: ->
 
