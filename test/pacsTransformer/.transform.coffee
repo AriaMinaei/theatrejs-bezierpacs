@@ -142,10 +142,10 @@ describe "PacsTransformer", ->
 
 				describe "should preserve external to external connections interjected by existing selected points", ->
 
-					_example
+					example
 
 						from: "a-x-b"
-						to:   "a---b x"
+						to:   "a--b x"
 						fn: "+200"
 
 					_example
@@ -154,7 +154,7 @@ describe "PacsTransformer", ->
 						to:   "a-----b x-y"
 						fn: "+300"
 
-					example
+					_example
 
 						from: "f a-x-b-y-c      d-e"
 						to:   "f a---b---c x--y d-e"

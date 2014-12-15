@@ -311,6 +311,18 @@ module.exports = class PacsTransformer
 
 	_remakeExternalConnections: ->
 
+		@_actionQueue.startStep 'remakeExternalConnections'
+
+		for id in @_listOfUnselectedPointsConnectedToRightInterjectedBySelectedPoints
+
+			p = @pacs.getItemById id
+
+			@_actionQueue
+			.getActionUnitFor 'point.connectRight', p
+			.applyForward()
+
+		@_actionQueue.endStep 'remakeExternalConnections'
+
 	_dcExternalConnectionsToBeInterjected: ->
 
 	_getInSequence: ->

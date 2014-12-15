@@ -66,6 +66,10 @@ module.exports = class ChronologyContainer
 
 		@
 
+	getItemById: (id) ->
+
+		@_ids[id]
+
 	putItemInSequence: (item) ->
 
 		if item._pacs isnt this
