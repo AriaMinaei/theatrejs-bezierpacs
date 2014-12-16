@@ -104,15 +104,41 @@ module.exports = class ChronologyContainer
 
 	getIndexOfItemBeforeOrAt: (t) ->
 
-		lastIndex = -1
+		minIndex = 0
+		maxIndex = @_itemsInSequence.length - 1
 
-		for item, index in @_itemsInSequence
+		biggestIndex = -1
 
-			break if item._time > t
+		while minIndex <= maxIndex
 
-			lastIndex = index
+			currentIndex = (minIndex + maxIndex) / 2 | 0
+			currentElement = @_itemsInSequence[currentIndex]
 
-		lastIndex
+			if currentElement._time < t
+
+				biggestIndex = Math.max currentIndex, biggestIndex
+
+				minIndex = currentIndex + 1
+
+			else if currentElement._time > t
+
+				maxIndex = currentIndex - 1
+
+			else
+
+				return currentIndex
+
+		return biggestIndex
+
+		# lastIndex = -1
+
+		# for item, index in @_itemsInSequence
+
+		# 	break if item._time > t
+
+		# 	lastIndex = index
+
+		# lastIndex
 
 	###*
 	 * If there are two Items on that time (a point and a connector),
