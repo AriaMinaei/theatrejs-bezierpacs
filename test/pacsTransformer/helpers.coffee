@@ -39,7 +39,7 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 			unless lastConnector?
 
 				lastConnector = pacs.createConnector()
-				.setTime(curTime)
+				.setTime(curTime - 100)
 				.getRecognizedBy pacs
 
 			curTime += 100
@@ -75,6 +75,8 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 				lastConnector.getInSequence()
 				lastConnector = null
 
+			curTime += 100
+
 	stuff
 
 module.exports.pacsToString = pacsToString = (pacs) ->
@@ -109,7 +111,7 @@ module.exports.pacsToString = pacsToString = (pacs) ->
 
 				str += '*'
 
-				curTime += 100
+			curTime += 100
 
 		else
 
@@ -123,6 +125,17 @@ describe "PacsTransformer Helpers", ->
 
 		it "should accept a string like 'a  x-b-y c'"
 		it "should return an object called `stuff` that has pacs, selection, transformer, and a list of all the points created"
+
+		it "case: x y", ->
+
+			{unselectedPoints} = stringToStuff "a b c-d e--f"
+
+			unselectedPoints.a._time.should.equal 0
+			unselectedPoints.b._time.should.equal 200
+			unselectedPoints.c._time.should.equal 400
+			unselectedPoints.d._time.should.equal 600
+			unselectedPoints.e._time.should.equal 800
+			unselectedPoints.f._time.should.equal 1100
 
 	describe "pacsToString()", ->
 
