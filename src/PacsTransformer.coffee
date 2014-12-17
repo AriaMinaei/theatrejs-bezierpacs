@@ -86,13 +86,13 @@ module.exports = class PacsTransformer
 
 				c = p.getLeftConnector()
 
-				if c? then transformablePoint.prevConnectedUnselectedNeighbour = c.getLeftPoint()._idInPacs
+				if c? then transformablePoint.prevConnectedUnselectedNeighbour = c.getLeftPoint().id
 
 			unless connectedForward
 
 				c = p.getRightConnector()
 
-				if c? then transformablePoint.nextConnectedUnselectedNeighbour = c.getRightPoint()._idInPacs
+				if c? then transformablePoint.nextConnectedUnselectedNeighbour = c.getRightPoint().id
 
 			@_pointsArray.push transformablePoint
 			@_pointsMap[transformablePoint.idInPacs] = transformablePoint
@@ -116,7 +116,7 @@ module.exports = class PacsTransformer
 
 				continue if prevItem.isConnector()
 
-				continue if @_pointsMap[prevItem._idInPacs]?
+				continue if @_pointsMap[prevItem.id]?
 
 				leftConfinement = prevItem._time
 
@@ -133,7 +133,7 @@ module.exports = class PacsTransformer
 
 				continue if nextItem.isConnector()
 
-				continue if @_pointsMap[nextItem._idInPacs]?
+				continue if @_pointsMap[nextItem.id]?
 
 				rightConfinement = nextItem._time
 
@@ -141,6 +141,13 @@ module.exports = class PacsTransformer
 
 			p.leftConfinement = leftConfinement
 			p.rightConfinement = rightConfinement
+
+			unless p.hasInitialConfinements
+
+				p.initialLeftConfinement = leftConfinement
+				p.initialRightConfinement = rightConfinement
+
+				p.hasInitialConfinements = yes
 
 		return
 
@@ -176,7 +183,7 @@ module.exports = class PacsTransformer
 
 	_applyProps: ->
 
-		isFirstTimeSettingTime = not @_actionQueue.haveTakenStepsBefore 'applyProps'
+		# isFirstTimeSettingTime = not @_actionQueue.haveTakenStepsBefore 'applyProps'
 
 		@_actionQueue.startStep 'applyProps'
 
@@ -191,7 +198,7 @@ module.exports = class PacsTransformer
 				p = @_pointsArray[i]
 
 				@_actionQueue
-				.getActionUnitFor 'point.applyProps', p, {ignoreSettingBackwardProps: not isFirstTimeSettingTime}
+				.getActionUnitFor 'point.applyProps', p #, {ignoreSettingBackwardProps: not isFirstTimeSettingTime}
 				.captureProps()
 				.applyForward()
 
@@ -202,7 +209,7 @@ module.exports = class PacsTransformer
 			for p in @_pointsArray
 
 				@_actionQueue
-				.getActionUnitFor 'point.applyProps', p, {ignoreSettingBackwardProps: not isFirstTimeSettingTime}
+				.getActionUnitFor 'point.applyProps', p #, {ignoreSettingBackwardProps: not isFirstTimeSettingTime}
 				.captureProps()
 				.applyForward()
 
@@ -213,14 +220,16 @@ module.exports = class PacsTransformer
 
 	_reOrder: ->
 
-		if not @_actionQueue.haveTakenStepsBefore 'applyProps'
+		@_actionQueue.rollBack()
 
-			do @_dcExternalEventualConnectionsInterjectedBySelectedPoints
-			do @_dcInternalConnections
-			do @_getOffSequence
-			do @_remakeExternalConnections
+		# if not @_actionQueue.haveTakenStepsBefore 'applyProps'
 
-		@_actionQueue.rollBackTo 'applyProps'
+		do @_dcExternalEventualConnectionsInterjectedBySelectedPoints
+		do @_dcInternalConnections
+		do @_getOffSequence
+		do @_remakeExternalConnections
+
+		# @_actionQueue.rollBackTo 'applyProps'
 
 		do @_applyProps
 		do @_dcExternalConnectionsToBeInterjected
@@ -253,7 +262,7 @@ module.exports = class PacsTransformer
 
 			continue if item.isConnector()
 
-			continue if @_pointsMap[item._idInPacs]?
+			continue if @_pointsMap[item.id]?
 
 			unselectedPointsToConsider.push item
 
@@ -276,7 +285,7 @@ module.exports = class PacsTransformer
 
 			if curPoint.isEventuallyConnectedTo nextPoint
 
-				list.push curPoint._idInPacs
+				list.push curPoint.id
 
 		return
 
@@ -299,6 +308,8 @@ module.exports = class PacsTransformer
 				@_actionQueue
 				.getActionUnitFor 'point.disconnectRight', p.initialPoint
 				.applyForward()
+
+		for p in @_pointsArray
 
 			@_actionQueue
 			.getActionUnitFor 'point.getOffSequence', p.initialPoint
@@ -326,6 +337,17 @@ module.exports = class PacsTransformer
 	_dcExternalConnectionsToBeInterjected: ->
 
 	_getInSequence: ->
+
+		@_actionQueue.startStep 'getInSequence'
+
+		for p in @_pointsArray
+
+			@_actionQueue
+			.getActionUnitFor 'point.getInSequence', p.initialPoint
+			.applyForward()
+
+		@_actionQueue.endStep 'getInSequence'
+
 
 	_remakeInterjectedExternalConnections: ->
 

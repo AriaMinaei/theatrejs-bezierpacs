@@ -14,7 +14,7 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 	unselectedPoints = stuff.unselectedPoints = {}
 	listOfAllPoints = stuff.listOfAllPoints = []
 
-	idOf = stuff.idOf = (name) -> allPoints[name]._idInPacs
+	idOf = stuff.idOf = (name) -> allPoints[name].id
 
 	stuff.transformablePoint = (name) ->
 
@@ -120,6 +120,8 @@ module.exports.pacsToString = pacsToString = (pacs) ->
 	str
 
 describe "PacsTransformer Helpers", ->
+
+	return
 
 	describe "stringToStuff()", ->
 

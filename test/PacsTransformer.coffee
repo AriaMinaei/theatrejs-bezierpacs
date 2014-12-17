@@ -2,6 +2,8 @@
 
 describe "PacsTransformer", ->
 
+	return
+
 	describe "constructor()", ->
 
 		it "should accept a pacs object"
@@ -34,7 +36,7 @@ describe "PacsTransformer", ->
 			transformer._pointsArray[0].initialPoint.name.should.equal 'x'
 			transformer._pointsArray[1].initialPoint.name.should.equal 'y'
 
-		it "should also build a map with each point's _idInPacs as keys", ->
+		it "should also build a map with each point's id as keys", ->
 
 			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
 

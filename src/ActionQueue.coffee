@@ -4,6 +4,7 @@ PointDisconnectLeftActionUnit = require './actionQueue/PointDisconnectLeftAction
 PointDisconnectRightActionUnit = require './actionQueue/PointDisconnectRightActionUnit'
 PointGetOffSequenceActionUnit = require './actionQueue/PointGetOffSequenceActionUnit'
 PointConnectRightActionUnit = require './actionQueue/PointConnectRightActionUnit'
+PointGetInSequenceActionUnit = require './actionQueue/PointGetInSequenceActionUnit'
 
 
 module.exports = class ActionQueue
@@ -32,9 +33,45 @@ module.exports = class ActionQueue
 
 		no
 
-	rollBackTo: ->
+	rollBack: ->
+
+		console.log '------ full rollback'
+
+		for i in [(@_stepsOrder.length - 1)..0]
+
+			curStepName = @_stepsOrder[i]
+
+			step  = @_steps[curStepName]
+
+			step.rollBack()
+
+		console.log '----- done rollback'
+
+		this
+
+	rollBackTo: (name) ->
+
+		console.log "---rollback to '#{name}'' ---"
+
+		unless @_steps[name]?
+
+			throw Error "No such step '#{name}'"
+
+		for i in [(@_stepsOrder.length - 1)..0]
+
+			curStepName = @_stepsOrder[i]
+
+			step  = @_steps[curStepName]
+
+			break if name is step.name
+
+			step.rollBack()
+
+		this
 
 	startStep: (name) ->
+
+		console.log 'start:', name
 
 		if @_currentStep?
 
@@ -49,6 +86,9 @@ module.exports = class ActionQueue
 		this
 
 	endStep: (name) ->
+
+		console.log 'end:', name
+
 
 		unless @_currentStep?
 
@@ -88,7 +128,7 @@ module.exports = class ActionQueue
 
 			actionUnit = new actionUnitClass this, mainObject, props
 
-			@_currentStep.addActionUnit actionUnit
+			@_currentStep.addActionUnit id, actionUnit
 
 		actionUnit
 
@@ -101,3 +141,4 @@ module.exports = class ActionQueue
 		'point.disconnectRight': PointDisconnectRightActionUnit
 		'point.getOffSequence': PointGetOffSequenceActionUnit
 		'point.connectRight': PointConnectRightActionUnit
+		'point.getInSequence': PointGetInSequenceActionUnit

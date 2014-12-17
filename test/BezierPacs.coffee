@@ -1,10 +1,11 @@
 {stringToStuff, pacsToString} = require './pacsTransformer/helpers'
+BezierPacs = require '../src/BezierPacs'
 
 describe "BezierPacs", ->
 
-	describe "general", ->
+	describe "getIndexOfItemBeforeOrAt()", ->
 
-		it.only "binarys earch", ->
+		it.skip "should do a binary search", ->
 
 			stuff = stringToStuff 'a b c d'
 
@@ -12,8 +13,21 @@ describe "BezierPacs", ->
 
 			pacs.getIndexOfItemBeforeOrAt(0).should.equal 0
 			pacs.getIndexOfItemBeforeOrAt(50).should.equal 0
-			pacs.getIndexOfItemBeforeOrAt(100).should.equal 1
-			pacs.getIndexOfItemBeforeOrAt(101).should.equal 1
-			pacs.getIndexOfItemBeforeOrAt(201).should.equal 2
-			pacs.getIndexOfItemBeforeOrAt(301).should.equal 3
-			pacs.getIndexOfItemBeforeOrAt(401).should.equal 3
+			pacs.getIndexOfItemBeforeOrAt(200).should.equal 1
+			pacs.getIndexOfItemBeforeOrAt(201).should.equal 1
+			pacs.getIndexOfItemBeforeOrAt(401).should.equal 2
+			pacs.getIndexOfItemBeforeOrAt(601).should.equal 3
+			pacs.getIndexOfItemBeforeOrAt(801).should.equal 3
+
+	describe "general", ->
+
+		it "should work", ->
+
+			pacs = new BezierPacs
+
+			pacs
+			.createPoint()
+			.setTime 100
+			.setValue 100
+			.getRecognizedBy pacs
+			.getInSequence()

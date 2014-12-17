@@ -1,12 +1,11 @@
-ChronologyContainer = require './bezierPacs/ChronologyContainer'
+PointsContainer = require './bezierPacs/PointsContainer'
 Point = require './bezierPacs/Point'
-Connector = require './bezierPacs/Connector'
 
-module.exports = class BezierPacs extends ChronologyContainer
+module.exports = class BezierPacs
 
 	constructor: ->
 
-		super
+		@_list = new PointsContainer this
 
 		@_haveDataChanges = no
 		@_committingDataChangesHeldOff = no
@@ -93,7 +92,3 @@ module.exports = class BezierPacs extends ChronologyContainer
 
 		#TODO: pool
 		new Point
-
-	createConnector: ->
-
-		new Connector

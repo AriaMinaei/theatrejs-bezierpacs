@@ -3,7 +3,7 @@ module.exports = class PointDisconnectRightActionUnit
 
 	@getIdFor: (point, props) ->
 
-		"point.disconnectRight[#{point._idInPacs}]"
+		"point.disconnectRight[#{point.id}]"
 
 	constructor: (@_actionQueue, @_point) ->
 

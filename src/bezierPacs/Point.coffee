@@ -1,19 +1,136 @@
-Item = require './Item'
+PipingEmitter = require 'utila/lib/PipingEmitter'
 clamp = require 'utila/lib/math/clamp'
 
-module.exports = class Point extends Item
+module.exports = class Point
 
 	constructor: ->
 
-		super
+		@_id = null
+		@_pacs = null
+		@_list = null
+		@_sequence = null
 
+		@_time = 0
 		@_value = 0
 
-		@_leftHandler = new Float64Array 2
-		@_rightHandler = new Float64Array 2
+		@events = new PipingEmitter
 
-		@_leftConnector = null
-		@_rightConnector = null
+	getRecognizedBy: (pacs) ->
+
+		pacs._list.recognize this
+
+		@
+
+	_receiveRecognition: ->
+
+		@events._emit 'recognition'
+
+	_receiveUnrecognition: ->
+
+		@events._emit 'unrecognition'
+
+	getUnrecognized: ->
+
+		unless @_list?
+
+			throw Error "Point isn't recognized by any Pacs yet."
+
+		@_list.unrecognizePoint this
+
+		@
+
+	getInSequence: ->
+
+		unless @_list?
+
+			throw Error "Point isn't recognized by any Pacs yet."
+
+		@_list.putInSequence this
+
+		@
+
+	_fitInSequence: ->
+
+		beforeIndex = @_list.getIndexOfPointBeforeOrAt @_time
+
+		myIndex = beforeIndex + 1
+
+		if myIndex is 0
+
+			changeFrom = -Infinity
+
+		else
+
+			beforePoint = @_list.getByIndex beforeIndex
+
+			unless beforePoint.isConnectedToRight()
+
+				changeFrom = @_time
+
+			else
+
+				throw Error "Point cannot fit where a connector already exists.
+					Remove the connector, put the point in sequence, and then restore
+					the connector if necessary"
+
+		afterPoint = @_list.getByIndex myIndex
+
+		unless afterPoint?
+
+			changeTo = Infinity
+
+		else
+
+			changeTo = afterPoint._time
+
+		@_list.injectOnIndex this, myIndex
+
+		@_pacs._reportChange changeFrom, changeTo
+
+		@events._emit 'inSequnce'
+
+	getOutOfSequence: ->
+
+		unless @_list?
+
+			throw Error "Point isn't recognized by any Pacs yet."
+
+		@_list.takeOutOfSequence this
+
+		@
+
+	_fitOutOfSequence: ->
+
+		if @_leftConnector?
+
+			throw Error "Cannot fit out of sequence when already connected to the left."
+
+		if @_rightConnector?
+
+			throw Error "Cannot fit out of sequence when already connected to the right."
+
+		before = @_list.getPointBeforePoint this
+		after = @_list.getPointAfterPoint this
+
+		changeFrom = if before? then @_time else -Infinity
+
+		changeTo = if after? then after._time else Infinity
+
+		@_list.pluckPoint this
+
+		@_pacs._reportChange changeFrom, changeTo
+
+		@events._emit 'outOfSequence'
+
+	eliminate: ->
+
+		do @getOutOfSequence
+
+		do @getUnrecognized
+
+	getTime: ->
+
+		@_time
 
 	setValue: (v) ->
 
@@ -36,11 +153,11 @@ module.exports = class Point extends Item
 
 		else
 
-			before = @_pacs.getItemBeforeItem this
+			before = @_list.getPointBeforePoint this
 
 			leftConfinement = if before? then before._time else -Infinity
 
-			after = @_pacs.getItemAfterItem this
+			after = @_list.getPointAfterPoint this
 
 			unless after?
 
@@ -54,7 +171,7 @@ module.exports = class Point extends Item
 
 				rightConnector = after
 
-				after = @_pacs.getItemAfterItem rightConnector
+				after = @_list.getPointAfterPoint rightConnector
 
 				rightConfinement = after._time
 
@@ -76,193 +193,10 @@ module.exports = class Point extends Item
 
 		@
 
-	setLeftHandler: (x, y) ->
-
-		@_leftHandler[0] = clamp +x, 0, 1
-		@_leftHandler[1] = +y
-
-		@events._emit 'leftHandler-change'
-		@getLeftConnector()?.reactToChangesInRightPoint()
-
-		@
-
-	setRightHandler: (x, y) ->
-
-		@_rightHandler[0] = clamp +x, 0, 1
-		@_rightHandler[1] = +y
-
-		@events._emit 'rightHandler-change'
-		@getRightConnector()?.reactToChangesInLeftPoint()
-
-		@
-
-	_fitInSequence: ->
-
-		beforeIndex = @_pacs.getIndexOfItemBeforeOrAt @_time
-
-		myIndex = beforeIndex + 1
-
-		if myIndex is 0
-
-			changeFrom = -Infinity
-
-		else
-
-			beforeItem = @_pacs.getItemByIndex beforeIndex
-
-			if beforeItem.isPoint()
-
-				changeFrom = @_time
-
-			else
-
-				throw Error "Point cannot fit where a connector already exists.
-					Remove the connector, put the point in sequence, and then restore
-					the connector if necessary"
-
-		afterItem = @_pacs.getItemByIndex myIndex
-
-		unless afterItem?
-
-			changeTo = Infinity
-
-		else if afterItem.isPoint()
-
-			changeTo = afterItem._time
-
-		else
-
-			throw Error "Point cannot fit where a connector already exists.
-				Remove the connector, put the point in sequence, and then restore
-				the connector if necessary"
-
-		@_pacs.injectItemOnIndex this, myIndex
-
-		@_pacs._reportChange changeFrom, changeTo
-
-		@events._emit 'inSequnce'
-
-	_fitOutOfSequence: ->
-
-		if @_leftConnector?
-
-			throw Error "Cannot fit out of sequence when already connected to the left."
-
-		if @_rightConnector?
-
-			throw Error "Cannot fit out of sequence when already connected to the right."
-
-		before = @_pacs.getItemBeforeItem this
-		after = @_pacs.getItemAfterItem this
-
-		changeFrom = if before? then @_time else -Infinity
-
-		changeTo = if after? then after._time else Infinity
-
-		@_pacs.pluckItem this
-
-		@_pacs._reportChange changeFrom, changeTo
-
-		@events._emit 'outOfSequence'
-
-	isPoint: ->
-
-		yes
-
-	isConnector: ->
-
-		no
-
-	getLeftConnector: ->
-
-		@_leftConnector
-
-	getRightConnector: ->
-
-		@_rightConnector
-
-	_setLeftConnector: (@_leftConnector) ->
-
-		@events._emit 'connectionToLeft', @_leftConnector
-
-	connectToLeft: ->
-
-		if @_leftConnector?
-
-			throw Error "Already connected to the left"
-
-		beforePoint = @_pacs.getItemBeforeItem this
-
-		unless beforePoint?
-
-			throw Error "There are no points to the left to connect to"
-
-		@_pacs.createConnector()
-		.setTime(beforePoint._time)
-		.getRecognizedBy @_pacs
-		.getInSequence()
-
-		this
-
-	connectToRight: ->
-
-		if @_rightConnector?
-
-			throw Error "Already connected to the right"
-
-		afterPoint = @_pacs.getItemAfterItem this
-
-		unless afterPoint?
-
-			throw Error "There are no points to the right to connect to"
-
-		@_pacs.createConnector()
-		.setTime(@_time)
-		.getRecognizedBy @_pacs
-		.getInSequence()
-
-		this
-
-	disconnectFromLeft: ->
-
-		unless @_leftConnector?
-
-			throw Error "There are no left connections to disconnect"
-
-		@_leftConnector.eliminate()
-
-		this
-
-	disconnectFromRight: ->
-
-		unless @_rightConnector?
-
-			throw Error "There are no right connections to disconnect"
-
-		@_rightConnector.eliminate()
-
-		this
-
-	_unsetLeftConnector: ->
-
-		@events._emit 'disconnectionFromLeft'
-
-		@_leftConnector = null
-
-	_setRightConnector: (@_rightConnector) ->
-
-		@events._emit 'connectionToRight', @_rightConnector
-
-	_unsetRightConnector: ->
-
-		@events._emit 'disconnectionFromRight'
-
-		@_rightConnector = null
-
 	isEventuallyConnectedTo: (targetPoint) ->
 
-		myIndex = @_pacs.getItemIndex this
-		targetIndex = @_pacs.getItemIndex targetPoint
+		myIndex = @_list.getPointIndex this
+		targetIndex = @_list.getPointIndex targetPoint
 
 		needConnector = no
 
@@ -270,7 +204,7 @@ module.exports = class Point extends Item
 
 			if needConnector
 
-				return no unless @_pacs.getItemByIndex(index).isConnector()
+				return no unless @_list.getByIndex(index).isConnector()
 
 			needConnector = !needConnector
 

@@ -19,10 +19,12 @@ module.exports = class TransformablePoint
 		@leftHandler = new Float64Array 2
 		@rightHandler = new Float64Array 2
 
-		@idInPacs = @initialPoint._idInPacs
+		@idInPacs = @initialPoint.id
 
 		@leftConfinement = 0
 		@rightConfinement = 0
+
+		@hasInitialConfinements = no
 
 		do @reset
 

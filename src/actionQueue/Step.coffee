@@ -7,7 +7,6 @@ module.exports = class Step
 		@_started = no
 
 		@_actionUnits = {}
-		@_actionUnitsInOrder = []
 
 	haveBeenTaken: ->
 
@@ -42,4 +41,17 @@ module.exports = class Step
 
 		@_actionUnits[id] = actionUnit
 
-		@_actionUnitsInOrder.push id
+	rollBack: ->
+
+		console.log 'rolling back', @name
+
+		ids = Object.keys @_actionUnits
+
+		for id in ids by -1
+
+			console.log 'applying backward:', id
+			@_actionUnits[id].applyBackward()
+
+			delete @_actionUnits[id]
+
+		return

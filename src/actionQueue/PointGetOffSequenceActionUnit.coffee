@@ -3,7 +3,7 @@ module.exports = class PointGetOffSequenceActionUnit
 
 	@getIdFor: (point, props) ->
 
-		"point.disconnectGetOffSequence[#{point._idInPacs}]"
+		"point.getOffSequence[#{point.id}]"
 
 	constructor: (@_actionQueue, @_point) ->
 
