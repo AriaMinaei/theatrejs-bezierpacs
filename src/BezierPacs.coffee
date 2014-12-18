@@ -1,11 +1,11 @@
-PointsContainer = require './bezierPacs/PointsContainer'
+PointsList = require './bezierPacs/PointsList'
 Point = require './bezierPacs/Point'
 
 module.exports = class BezierPacs
 
 	constructor: ->
 
-		@_list = new PointsContainer this
+		@_list = new PointsList this
 
 		@_haveDataChanges = no
 		@_committingDataChangesHeldOff = no

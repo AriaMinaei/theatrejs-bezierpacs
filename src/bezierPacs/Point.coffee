@@ -5,6 +5,8 @@ module.exports = class Point
 
 	constructor: ->
 
+		@events = new PipingEmitter
+
 		@_id = null
 		@_pacs = null
 		@_list = null
@@ -13,7 +15,13 @@ module.exports = class Point
 		@_time = 0
 		@_value = 0
 
-		@events = new PipingEmitter
+		@_leftPoint = null
+		@_rightPoint = null
+
+		@_leftConnector = null
+		@_rightConnector = null
+
+		@_carriesLeftConnector = no
 
 	belongTo: (pacs) ->
 
@@ -63,9 +71,9 @@ module.exports = class Point
 
 	_getInsertedInSequence: ->
 
-		beforeIndex = @_list.getIndexOfPointBeforeOrAt @_time
+		leftIndex = @_list.getIndexOfPointBeforeOrAt @_time
 
-		myIndex = beforeIndex + 1
+		myIndex = leftIndex + 1
 
 		if myIndex is 0
 
@@ -73,9 +81,9 @@ module.exports = class Point
 
 		else
 
-			beforePoint = @_list.getByIndex beforeIndex
+			leftPoint = @_list.getByIndex leftIndex
 
-			unless beforePoint.isConnectedToRight()
+			unless leftPoint.isConnectedToRight()
 
 				changeFrom = @_time
 
@@ -85,17 +93,28 @@ module.exports = class Point
 					Remove the connector, put the point in sequence, and then restore
 					the connector if necessary"
 
-		afterPoint = @_list.getByIndex myIndex
+		rightPoint = @_list.getByIndex myIndex
 
-		unless afterPoint?
+		unless rightPoint?
 
 			changeTo = Infinity
 
 		else
 
-			changeTo = afterPoint._time
+			changeTo = rightPoint._time
 
 		@_list.injectOnIndex this, myIndex
+
+		if leftPoint?
+
+			@_leftPoint = leftPoint
+
+			leftPoint._rightPoint = this
+
+		if rightPoint?
+
+			@_rightPoint = rightPoint
+			rightPoint._leftPoint = this
 
 		@_pacs._reportChange changeFrom, changeTo
 
@@ -103,22 +122,18 @@ module.exports = class Point
 
 	_getRemovedFromSequence: ->
 
-		if @_leftConnector?
+		if @_leftConnector? or @_rightConnector?
 
-			throw Error "Cannot fit out of sequence when already connected to the left."
+			throw Error "Cannot get removed from sequence because the point is already connected to another point"
 
-		if @_rightConnector?
-
-			throw Error "Cannot fit out of sequence when already connected to the right."
-
-		before = @_list.getPointBeforePoint this
-		after = @_list.getPointAfterPoint this
+		before = @_list.getBefore this
+		after = @_list.getAfter this
 
 		changeFrom = if before? then @_time else -Infinity
 
 		changeTo = if after? then after._time else Infinity
 
-		@_list.pluckPoint this
+		@_list.pluck this
 
 		@_pacs._reportChange changeFrom, changeTo
 
@@ -129,6 +144,31 @@ module.exports = class Point
 		do @remove
 
 		do @disbelong
+
+	isConnectedToRight: ->
+
+		@_rightConnector?
+
+	isConnectedToLeft: ->
+
+		@_leftConnector?
+
+	isEventuallyConnectedTo: (targetPoint) ->
+
+		myIndex = @_list.getPointIndex this
+		targetIndex = @_list.getPointIndex targetPoint
+
+		needConnector = no
+
+		for index in [myIndex..targetIndex]
+
+			if needConnector
+
+				return no unless @_list.getByIndex(index).isConnector()
+
+			needConnector = !needConnector
+
+		yes
 
 	getTime: ->
 
@@ -155,11 +195,11 @@ module.exports = class Point
 
 		else
 
-			before = @_list.getPointBeforePoint this
+			before = @_list.getBefore this
 
 			leftConfinement = if before? then before._time else -Infinity
 
-			after = @_list.getPointAfterPoint this
+			after = @_list.getAfter this
 
 			unless after?
 
@@ -173,7 +213,7 @@ module.exports = class Point
 
 				rightConnector = after
 
-				after = @_list.getPointAfterPoint rightConnector
+				after = @_list.getAfter rightConnector
 
 				rightConfinement = after._time
 
@@ -194,20 +234,3 @@ module.exports = class Point
 		@events._emit 'time-change', t
 
 		@
-
-	isEventuallyConnectedTo: (targetPoint) ->
-
-		myIndex = @_list.getPointIndex this
-		targetIndex = @_list.getPointIndex targetPoint
-
-		needConnector = no
-
-		for index in [myIndex..targetIndex]
-
-			if needConnector
-
-				return no unless @_list.getByIndex(index).isConnector()
-
-			needConnector = !needConnector
-
-		yes
