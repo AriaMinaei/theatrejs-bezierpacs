@@ -1,6 +1,10 @@
+PipingEmitter = require 'utila/lib/PipingEmitter'
+
 module.exports = class Connector
 
-	constructor: ->
+	constructor: (@_pacs) ->
+
+		@events = new PipingEmitter
 
 		@_active = no
 
@@ -22,6 +26,11 @@ module.exports = class Connector
 
 		@_active = yes
 
+		@events._emit 'activation'
+		@events._emit 'activation-state-change', true
+
+		do @_reportChangeInWholeRange
+
 		this
 
 	deactivate: ->
@@ -32,40 +41,12 @@ module.exports = class Connector
 
 		@_active = no
 
+		@events._emit 'deactivation'
+		@events._emit 'activation-state-change', false
+
+		do @_reportChangeInWholeRange
+
 		this
-
-	_fitInSequence: ->
-
-		beforeIndex = @_pacs.getIndexOfItemBeforeOrAt @_time
-
-		myIndex = beforeIndex + 1
-
-		before = @_pacs.getItemByIndex beforeIndex
-
-		unless before? and before.isPoint()
-
-			throw Error "We need a point to be present before each connector"
-
-		after = @_pacs.getItemByIndex myIndex
-
-		unless after? and after.isPoint()
-
-			throw Error "We need a point to be present after each connector"
-
-		@_pacs.injectItemOnIndex this, myIndex
-
-		@_leftPoint = before
-		@_rightPoint = after
-
-		do @reactToChangesInLeftPoint
-		do @reactToChangesInRightPoint
-
-		@_leftPoint._setRightConnector this
-		@_rightPoint._setLeftConnector this
-
-		@_pacs._reportChange before._time, after._time
-
-		@events._emit 'inSequnce'
 
 	_setLeftTime: (t) ->
 
@@ -113,6 +94,10 @@ module.exports = class Connector
 
 		@_rightValue
 
+	_reportChangeInWholeRange: ->
+
+		@_pacs._reportChange @_leftTime, @_rightTime
+
 	reactToChangesInRightPoint: ->
 
 		changeFrom = @_leftTime
@@ -120,7 +105,6 @@ module.exports = class Connector
 
 		@_rightTime = @_rightPoint._time
 		@_rightValue = @_rightPoint._value
-		@_rightHandler = @_rightPoint._leftHandler
 
 		@_pacs._reportChange changeFrom, changeTo
 
@@ -137,25 +121,9 @@ module.exports = class Connector
 
 		@_leftTime = @_leftPoint._time
 		@_leftValue = @_leftPoint._value
-		@_leftHandler = @_leftPoint._rightHandler
 
 		@_pacs._reportChange changeFrom, changeTo
 
 		@events._emit 'curve-change'
 
 		@
-
-	_fitOutOfSequence: ->
-
-		changeFrom = @_leftTime
-		changeTo = @_rightTime
-
-		@_leftPoint._unsetRightConnector()
-		@_leftPoint = null
-		@_rightPoint._unsetLeftConnector()
-		@_rightPoint = null
-
-		@_pacs.pluckItem this
-		@_pacs._reportChange changeFrom, changeTo
-
-		@events._emit 'outOfSequence'
