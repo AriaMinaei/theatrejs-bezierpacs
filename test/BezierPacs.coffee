@@ -29,5 +29,5 @@ describe "BezierPacs", ->
 			.createPoint()
 			.setTime 100
 			.setValue 100
-			.getRecognizedBy pacs
-			.getInSequence()
+			.belongTo pacs
+			.insert()

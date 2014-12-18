@@ -15,41 +15,53 @@ module.exports = class Point
 
 		@events = new PipingEmitter
 
-	getRecognizedBy: (pacs) ->
+	belongTo: (pacs) ->
 
-		pacs._list.recognize this
+		pacs._list.own this
 
 		@
 
-	_receiveRecognition: ->
+	disbelong: ->
 
-		@events._emit 'recognition'
+		unless @_list?
 
-	_receiveUnrecognition: ->
+			throw Error "This point doesn't belong to a Pacs yet"
 
-		@events._emit 'unrecognition'
+		@_list.disown this
 
-	getUnrecognized: ->
+		@
+
+	_reactToBeingOwned: ->
+
+		# TODO: rename
+		@events._emit 'belong'
+
+	_reactToBeingDisowned: ->
+
+		# TODO: rename
+		@events._emit 'disbelong'
+
+	insert: ->
 
 		unless @_list?
 
 			throw Error "Point isn't recognized by any Pacs yet."
 
-		@_list.unrecognizePoint this
+		@_list.insertInSequence this
 
 		@
 
-	getInSequence: ->
+	remove: ->
 
 		unless @_list?
 
 			throw Error "Point isn't recognized by any Pacs yet."
 
-		@_list.putInSequence this
+		@_list.removeFromSequence this
 
 		@
 
-	_fitInSequence: ->
+	_getInsertedInSequence: ->
 
 		beforeIndex = @_list.getIndexOfPointBeforeOrAt @_time
 
@@ -87,19 +99,9 @@ module.exports = class Point
 
 		@_pacs._reportChange changeFrom, changeTo
 
-		@events._emit 'inSequnce'
+		@events._emit 'insert'
 
-	getOutOfSequence: ->
-
-		unless @_list?
-
-			throw Error "Point isn't recognized by any Pacs yet."
-
-		@_list.takeOutOfSequence this
-
-		@
-
-	_fitOutOfSequence: ->
+	_getRemovedFromSequence: ->
 
 		if @_leftConnector?
 
@@ -120,13 +122,13 @@ module.exports = class Point
 
 		@_pacs._reportChange changeFrom, changeTo
 
-		@events._emit 'outOfSequence'
+		@events._emit 'remove'
 
 	eliminate: ->
 
-		do @getOutOfSequence
+		do @remove
 
-		do @getUnrecognized
+		do @disbelong
 
 	getTime: ->
 

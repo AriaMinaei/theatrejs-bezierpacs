@@ -25,15 +25,11 @@ module.exports = class PointsList
 
 		@_lastAssignedId = -1
 
-	recognize: (point) ->
+	own: (point) ->
 
 		if point._pacs?
 
-			throw Error "This point already is recognized by a Pacs, so it cannot be recognized by this pacs."
-
-		if point._sequence?
-
-			throw Error "This point is not recognized by any Pacs, but it is in a sequence."
+			throw Error "This point already is owned by a Pacs, so it cannot be owned by this Pacs"
 
 		# if the point already has an id
 		if valueIsInt point._id
@@ -59,21 +55,17 @@ module.exports = class PointsList
 		point._pacs = @_pacs
 		point._list = this
 
-		point._receiveRecognition()
+		point._reactToBeingOwned()
 
-		@events._emit 'point-recognition', point
+		@events._emit 'point-ownership', point
 
 		@
 
-	unrecognize: (point) ->
+	disown: (point) ->
 
 		unless point._pacs?
 
 			throw Error "Cannot unrecognize this point because it doesn't have a Pacs. How did this happen btw?"
-
-		if point._list isnt this
-
-			throw Error "Cannot unrecognize this point because its Pacs isnt this Pacs."
 
 		if point._sequence?
 
@@ -84,9 +76,9 @@ module.exports = class PointsList
 		point._list = null
 		point._pacs = null
 
-		point._receiveUnrecognition()
+		point._reactToBeingDisowned()
 
-		@events._emit 'point-unrecognition', point
+		@events._emit 'point-disownership', point
 
 		@
 
@@ -94,7 +86,7 @@ module.exports = class PointsList
 
 		@_pointsById[id]
 
-	putInSequence: (point) ->
+	insertInSequence: (point) ->
 
 		if point._list isnt this
 
@@ -106,11 +98,11 @@ module.exports = class PointsList
 
 		point._sequence = @_pointsInSequence
 
-		point._fitInSequence()
+		point._getInsertedInSequence()
 
 		@
 
-	takeOutOfSequence: (point) ->
+	removeFromSequence: (point) ->
 
 		if point._list isnt this
 
@@ -120,7 +112,7 @@ module.exports = class PointsList
 
 			throw Error "This point is not in this sequence."
 
-		point._fitOutOfSequence()
+		point._getRemovedFromSequence()
 
 		point._sequence = null
 
