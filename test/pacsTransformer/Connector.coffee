@@ -127,7 +127,7 @@ describe "Connector", ->
 
 			curveChangeSpy.should.have.been.calledOnce
 
-		it "should report time change", ->
+		it "should report change", ->
 
 			c = makeConnector()
 
@@ -145,7 +145,7 @@ describe "Connector", ->
 			c.changeSpy.should.have.been.calledTwice
 			c.changeSpy.secondCall.should.have.been.calledWith 0, 200
 
-		it.skip "should not report time change if not active"
+		it.skip "should not report change if not active"
 
 	describe "_readFromRightPoint", ->
 
@@ -177,7 +177,7 @@ describe "Connector", ->
 
 			curveChangeSpy.should.have.been.calledOnce
 
-		it "should report time change", ->
+		it "should report change", ->
 
 			c = makeConnector()
 
@@ -195,4 +195,4 @@ describe "Connector", ->
 			c.changeSpy.should.have.been.calledTwice
 			c.changeSpy.secondCall.should.have.been.calledWith 0, 200
 
-		it.skip "should not report time change if not active"
+		it.skip "should not report change if not active"

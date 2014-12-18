@@ -341,6 +341,40 @@ describe "Point", ->
 
 			(-> p2.disconnectFromLeft()).should.throw()
 
+	describe "disconnectFromRight()", ->
+
+		it "should just call right point's disconnectFromLeft()", ->
+
+			pacs = new BezierPacs
+			p1 = pacs.createPoint()
+			.belongTo pacs
+			.insert()
+
+			p2 = pacs.createPoint()
+			.setTime 200
+			.belongTo pacs
+			.insert()
+
+			p2.connectToLeft()
+			p1.disconnectFromRight()
+
+			p2.isConnectedToLeft().should.equal no
+			p1.isConnectedToRight().should.equal no
+
+		it "should throw if not connected to right", ->
+
+			pacs = new BezierPacs
+			p1 = pacs.createPoint()
+			.belongTo pacs
+			.insert()
+
+			p2 = pacs.createPoint()
+			.setTime 200
+			.belongTo pacs
+			.insert()
+
+			(-> p1.disconnectFromRight()).should.throw()
+
 	describe "setTime()", ->
 
 		it "should set the point's time", ->
@@ -384,4 +418,4 @@ describe "Point", ->
 
 			(-> p.setTime(301)).should.not.throw()
 
-		it.skip "should report time change"
+		it.skip "should report change"

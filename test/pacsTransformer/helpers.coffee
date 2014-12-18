@@ -25,7 +25,7 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 	transformer.useSelection selection
 
 	curTime = 0
-	lastConnector = null
+	shouldConnectNextPointToLeft = no
 	for char in strTimeline
 
 		if char is ' '
@@ -36,11 +36,7 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 
 		if char is '-'
 
-			unless lastConnector?
-
-				lastConnector = pacs.createConnector()
-				.setTime(curTime - 100)
-				.getRecognizedBy pacs
+			shouldConnectNextPointToLeft = yes
 
 			curTime += 100
 
@@ -52,8 +48,14 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 
 			point = pacs.createPoint()
 			.setTime curTime
-			.getRecognizedBy pacs
-			.getInSequence()
+			.belongTo pacs
+			.insert()
+
+			if shouldConnectNextPointToLeft
+
+				point.connectToLeft()
+
+				shouldConnectNextPointToLeft = no
 
 			point.name = name
 
@@ -70,10 +72,7 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 
 				selection.addPoint point
 
-			if lastConnector?
 
-				lastConnector.getInSequence()
-				lastConnector = null
 
 			curTime += 100
 
@@ -81,54 +80,43 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 
 module.exports.pacsToString = pacsToString = (pacs) ->
 
-	sequence = pacs._itemsInSequence
+	sequence = pacs._list._pointsInSequence
 
 	str = ''
 	curTime = 0
-	inConnection = no
 
-	for item in sequence
+	for point in sequence
 
-		if item.isPoint()
+		if curTime isnt point._time
 
-			if curTime isnt item._time
+			stringToRepeat = if point.isConnectedToLeft() then '-' else ' '
 
-				stringToRepeat = if inConnection then '-' else ' '
+			for i in [0...((point._time - curTime) / 100)]
 
-				for i in [0...((item._time - curTime) / 100)]
+				str += stringToRepeat
 
-					str += stringToRepeat
+			curTime = point._time
 
-				curTime = item._time
+		if point.name?
 
-				if inConnection then inConnection = no
-
-			if item.name?
-
-				str += item.name
-
-			else
-
-				str += '*'
-
-			curTime += 100
+			str += point.name
 
 		else
 
-			inConnection = yes
+			str += '*'
+
+		curTime += 100
 
 	str
 
 describe "PacsTransformer Helpers", ->
-
-	return
 
 	describe "stringToStuff()", ->
 
 		it "should accept a string like 'a  x-b-y c'"
 		it "should return an object called `stuff` that has pacs, selection, transformer, and a list of all the points created"
 
-		it "case: x y", ->
+		it "case: a b c-d e--f", ->
 
 			{unselectedPoints} = stringToStuff "a b c-d e--f"
 
@@ -138,6 +126,7 @@ describe "PacsTransformer Helpers", ->
 			unselectedPoints.d._time.should.equal 600
 			unselectedPoints.e._time.should.equal 800
 			unselectedPoints.f._time.should.equal 1100
+			unselectedPoints.f.isConnectedToLeft().should.equal yes
 
 	describe "pacsToString()", ->
 
