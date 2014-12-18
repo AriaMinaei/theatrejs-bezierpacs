@@ -1,5 +1,6 @@
-Connector = require '../../src/bezierPacs/Connector'
 BezierPacs = require '../../src/BezierPacs'
+Connector = require '../../src/bezierPacs/Connector'
+Point = require '../../src/bezierPacs/Point'
 
 makeConnector = ->
 
@@ -50,8 +51,8 @@ describe "Connector", ->
 		it "should report change", ->
 
 			c = makeConnector()
-			c._setLeftTime 100
-			c._setRightTime 200
+			c._leftTime = 100
+			c._rightTime = 200
 
 			c.activate()
 
@@ -86,11 +87,111 @@ describe "Connector", ->
 		it "should report change", ->
 
 			c = makeConnector()
-			c._setLeftTime 100
-			c._setRightTime 200
+			c._leftTime = 100
+			c._rightTime = 200
 
 			c.activate()
 			c.deactivate()
 
 			c.changeSpy.should.have.been.calledTwice
 			c.changeSpy.secondCall.should.have.been.calledWith 100, 200
+
+	describe "_readFromLeftPoint", ->
+
+		it "should read the props from point", ->
+
+			c = makeConnector()
+
+			c._rightTime = 200
+			c._leftTime = 0
+
+			left = new Point
+			left.setTime 100
+			left.setValue 10
+
+			c.activate()
+
+			c._readFromLeftPoint left
+
+			c._leftTime.should.equal 100
+			c._leftValue.should.equal 10
+
+		it "should emit 'curve-change'", ->
+
+			c = makeConnector()
+
+			c.events.on 'curve-change', curveChangeSpy = sinon.spy()
+
+			c._readFromLeftPoint new Point
+
+			curveChangeSpy.should.have.been.calledOnce
+
+		it "should report time change", ->
+
+			c = makeConnector()
+
+			c._rightTime = 200
+			c._leftTime = 0
+
+			left = new Point
+			left.setTime 100
+			left.setValue 10
+
+			c.activate()
+
+			c._readFromLeftPoint left
+
+			c.changeSpy.should.have.been.calledTwice
+			c.changeSpy.secondCall.should.have.been.calledWith 0, 200
+
+		it.skip "should not report time change if not active"
+
+	describe "_readFromRightPoint", ->
+
+		it "should read the props from point", ->
+
+			c = makeConnector()
+
+			c._rightTime = 200
+			c._leftTime = 0
+
+			right = new Point
+			right.setTime 100
+			right.setValue 10
+
+			c.activate()
+
+			c._readFromRightPoint right
+
+			c._rightTime.should.equal 100
+			c._rightValue.should.equal 10
+
+		it "should emit 'curve-change'", ->
+
+			c = makeConnector()
+
+			c.events.on 'curve-change', curveChangeSpy = sinon.spy()
+
+			c._readFromRightPoint new Point
+
+			curveChangeSpy.should.have.been.calledOnce
+
+		it "should report time change", ->
+
+			c = makeConnector()
+
+			c._rightTime = 200
+			c._leftTime = 0
+
+			right = new Point
+			right.setTime 100
+			right.setValue 10
+
+			c.activate()
+
+			c._readFromRightPoint right
+
+			c.changeSpy.should.have.been.calledTwice
+			c.changeSpy.secondCall.should.have.been.calledWith 0, 200
+
+		it.skip "should not report time change if not active"

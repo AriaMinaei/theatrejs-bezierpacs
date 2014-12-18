@@ -48,47 +48,17 @@ module.exports = class Connector
 
 		this
 
-	_setLeftTime: (t) ->
-
-		@_leftTime = +t
-
-		this
-
-	_setLeftTime: (x) ->
-
-		@_leftTime = +x
-
-		this
-
 	getLeftTime: ->
 
 		@_leftTime
-
-	_setRightTime: (x) ->
-
-		@_rightTime = +x
-
-		this
 
 	getRightTime: ->
 
 		@_rightTime
 
-	_setLeftValue: (x) ->
-
-		@_leftValue = +x
-
-		this
-
 	getLeftValue: ->
 
 		@_leftValue
-
-	_setRightValue: (x) ->
-
-		@_rightValue = +x
-
-		this
 
 	getRightValue: ->
 
@@ -98,32 +68,32 @@ module.exports = class Connector
 
 		@_pacs._reportChange @_leftTime, @_rightTime
 
-	reactToChangesInRightPoint: ->
+	_readFromLeftPoint: (p) ->
 
-		changeFrom = @_leftTime
-		changeTo = Math.max @_rightTime, @_rightPoint._time
+		changeFrom = Math.min @_leftTime, p._time
 
-		@_rightTime = @_rightPoint._time
-		@_rightValue = @_rightPoint._value
-
-		@_pacs._reportChange changeFrom, changeTo
-
-		@events._emit 'curve-change'
-
-		@
-
-	reactToChangesInLeftPoint: ->
-
-		changeFrom = Math.min @_leftTime, @_leftPoint._time
 		changeTo = @_rightTime
 
-		@setTime @_leftPoint._time
+		@_leftTime = p._time
+		@_leftValue = p._value
 
-		@_leftTime = @_leftPoint._time
-		@_leftValue = @_leftPoint._value
+		if @_active
 
-		@_pacs._reportChange changeFrom, changeTo
+			@_pacs._reportChange changeFrom, changeTo
 
 		@events._emit 'curve-change'
 
-		@
+	_readFromRightPoint: (p) ->
+
+		changeFrom = @_leftTime
+
+		changeTo = Math.max @_rightTime, @_rightTime
+
+		@_rightTime = p._time
+		@_rightValue = p._value
+
+		if @_active
+
+			@_pacs._reportChange changeFrom, changeTo
+
+		@events._emit 'curve-change'
