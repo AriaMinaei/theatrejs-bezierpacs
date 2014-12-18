@@ -26,6 +26,7 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 
 	curTime = 0
 	shouldConnectNextPointToLeft = no
+
 	for char in strTimeline
 
 		if char is ' '
@@ -71,8 +72,6 @@ module.exports.stringToStuff = stringToStuff = (strTimeline) ->
 				selectedPoints[name] = point
 
 				selection.addPoint point
-
-
 
 			curTime += 100
 

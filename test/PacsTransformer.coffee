@@ -2,8 +2,6 @@
 
 describe "PacsTransformer", ->
 
-	return
-
 	describe "constructor()", ->
 
 		it "should accept a pacs object"
@@ -14,7 +12,7 @@ describe "PacsTransformer", ->
 
 	describe "_buildInitialModel()", ->
 
-		it "should build a list of TransformablePoint-s", ->
+		it.skip "should build a list of TransformablePoint-s", ->
 
 			{pacs, selection, transformer} = stringToStuff "a x b y c z"
 
@@ -24,7 +22,7 @@ describe "PacsTransformer", ->
 			transformer._pointsArray[1].initialPoint.name.should.equal 'y'
 			transformer._pointsArray[2].initialPoint.name.should.equal 'z'
 
-		it "should build the list in order", ->
+		it.skip "should build the list in order", ->
 
 			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
 
@@ -36,7 +34,7 @@ describe "PacsTransformer", ->
 			transformer._pointsArray[0].initialPoint.name.should.equal 'x'
 			transformer._pointsArray[1].initialPoint.name.should.equal 'y'
 
-		it "should also build a map with each point's id as keys", ->
+		it.skip "should also build a map with each point's id as keys", ->
 
 			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
 
@@ -45,7 +43,7 @@ describe "PacsTransformer", ->
 			transformer._pointsMap[1].initialPoint.name.should.equal 'x'
 			transformer._pointsMap[2].initialPoint.name.should.equal 'y'
 
-		it "should tell each point if it is the first or last in the list of selected points", ->
+		it.skip "should tell each point if it is the first or last in the list of selected points", ->
 
 			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
 
@@ -57,7 +55,7 @@ describe "PacsTransformer", ->
 			transformer._pointsArray[0].lastSelectedPoint.should.equal no
 			transformer._pointsArray[1].lastSelectedPoint.should.equal yes
 
-		it "should tell each point if it was connected to its direct unselected neighbour", ->
+		it.skip "should tell each point if it was connected to its direct unselected neighbour", ->
 
 			{pacs, selection, transformer, selectedPoints, idOf, transformablePoint} = stringToStuff "a-x y-b z-w-c-u"
 
@@ -78,7 +76,7 @@ describe "PacsTransformer", ->
 			expect(transformablePoint('u').prevConnectedUnselectedNeighbour).to.equal null
 			expect(transformablePoint('u').nextConnectedUnselectedNeighbour).to.equal null
 
-		it "should tell each point knows if it was initially directly or indirectly connected to its next/prev selected point", ->
+		it.skip "should tell each point knows if it was initially directly or indirectly connected to its next/prev selected point", ->
 
 			{pacs, selection, transformer, selectedPoints, transformablePoint} = stringToStuff "a x-y b z-c-w u"
 
