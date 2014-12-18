@@ -1,5 +1,6 @@
 PipingEmitter = require 'utila/lib/PipingEmitter'
 clamp = require 'utila/lib/math/clamp'
+Connector = require './Connector'
 
 module.exports = class Point
 
@@ -21,7 +22,8 @@ module.exports = class Point
 		@_leftConnector = null
 		@_rightConnector = null
 
-		@_carriesLeftConnector = no
+		@_carriedConnector = new Connector
+
 
 	belongTo: (pacs) ->
 
@@ -126,14 +128,22 @@ module.exports = class Point
 
 			throw Error "Cannot get removed from sequence because the point is already connected to another point"
 
-		before = @_list.getBefore this
-		after = @_list.getAfter this
+		changeFrom = if @_leftPoint? then @_time else -Infinity
 
-		changeFrom = if before? then @_time else -Infinity
-
-		changeTo = if after? then after._time else Infinity
+		changeTo = if @_rightPoint? then @_rightPoint._time else Infinity
 
 		@_list.pluck this
+
+		if @_leftPoint?
+
+			@_leftPoint._rightPoint = @_rightPoint
+
+		if @_rightPoint?
+
+			@_rightPoint._leftPoint = @_leftPoint
+
+		@_rightPoint = null
+		@_leftPoint = null
 
 		@_pacs._reportChange changeFrom, changeTo
 
@@ -153,6 +163,40 @@ module.exports = class Point
 
 		@_leftConnector?
 
+	connectToLeft: ->
+
+		if @_leftConnector?
+
+			throw Error "Already connected to left."
+
+		unless @_sequence?
+
+			throw Error "Can't connect. We're not in sequence."
+
+		unless @_leftPoint?
+
+			throw Error "Can't connect to left. We're the first point in the sequence."
+
+
+
+	connectToRight: ->
+
+		if @_rightConnector?
+
+			throw Error "Already connected to right."
+
+		unless @_sequence?
+
+			throw Error "Can't connect. We're not in sequence."
+
+		unless @_rightPoint?
+
+			throw Error "Can't connect to right. We're the last point in the sequence."
+
+		@_rightPoint.connectToRight()
+
+		this
+
 	isEventuallyConnectedTo: (targetPoint) ->
 
 		myIndex = @_list.getPointIndex this
@@ -169,6 +213,35 @@ module.exports = class Point
 			needConnector = !needConnector
 
 		yes
+
+	setTime: (t) ->
+
+		unless @_sequence?
+
+			@_time = +t
+
+		else
+
+			leftConfinement = if @_leftPoint? then @_leftPoint._time else -Infinity
+			rightConfinement = if @_rightPoint? then @_rightPoint._time else Infinity
+
+			unless leftConfinement < t < rightConfinement
+
+				throw Error "Cannot move Point outside its neighbors` boundries. Get the point off sequence before moving it in time."
+
+			@_time = +t
+
+			if @_leftConnector?
+
+				@_leftConnector._setRightTime @_time
+
+			if @_rightConnector?
+
+				@_leftConnector._setLeftTime @_time
+
+		@events._emit 'time-change', t
+
+		@
 
 	getTime: ->
 
@@ -187,50 +260,3 @@ module.exports = class Point
 
 		@_value
 
-	setTime: (t) ->
-
-		unless @_sequence?
-
-			@_time = +t
-
-		else
-
-			before = @_list.getBefore this
-
-			leftConfinement = if before? then before._time else -Infinity
-
-			after = @_list.getAfter this
-
-			unless after?
-
-				rightConfinement = Infinity
-
-			else if after.isPoint()
-
-				rightConfinement = after._time
-
-			else
-
-				rightConnector = after
-
-				after = @_list.getAfter rightConnector
-
-				rightConfinement = after._time
-
-			unless leftConfinement < t < rightConfinement
-
-				throw Error "Cannot move Point outside its neighbors` boundries. Get the point off sequence before moving it in time."
-
-			@_time = +t
-
-			if before?.isConnector()
-
-				before.reactToChangesInRightPoint()
-
-			if rightConnector?
-
-				rightConnector.reactToChangesInLeftPoint()
-
-		@events._emit 'time-change', t
-
-		@

@@ -1,37 +1,38 @@
-Item = require './Item'
-
-module.exports = class Connector extends Item
+module.exports = class Connector
 
 	constructor: ->
 
-		super
+		@_active = no
 
-		@_leftPoint   = null
 		@_leftTime    = Infinity
 		@_leftValue   = 0
-		@_leftHandler = 0
 
-		@_rightPoint   = null
 		@_rightTime    = -Infinity
 		@_rightValue   = 0
-		@_rightHandler = 0
 
-	isPoint: ->
+	isActive: ->
 
-		no
+		@_active
 
-	isConnector: ->
+	activate: ->
 
-		yes
+		if @_active
 
-	setTime: (t) ->
+			throw Error "Already active."
 
-		#TODO: validate
-		@_time = +t
+		@_active = yes
 
-		@events._emit 'time-change', t
+		this
 
-		@
+	deactivate: ->
+
+		unless @_active
+
+			throw Error "We're not active, so we can't deactivate."
+
+		@_active = no
+
+		this
 
 	_fitInSequence: ->
 
@@ -66,37 +67,51 @@ module.exports = class Connector extends Item
 
 		@events._emit 'inSequnce'
 
+	_setLeftTime: (t) ->
+
+		@_leftTime = +t
+
+		this
+
+	_setLeftTime: (x) ->
+
+		@_leftTime = +x
+
+		this
+
 	getLeftTime: ->
 
 		@_leftTime
+
+	_setRightTime: (x) ->
+
+		@_rightTime = +x
+
+		this
 
 	getRightTime: ->
 
 		@_rightTime
 
+	_setLeftValue: (x) ->
+
+		@_leftValue = +x
+
+		this
+
 	getLeftValue: ->
 
 		@_leftValue
 
+	_setRightValue: (x) ->
+
+		@_rightValue = +x
+
+		this
+
 	getRightValue: ->
 
 		@_rightValue
-
-	getLeftPoint: ->
-
-		@_leftPoint
-
-	getRightPoint: ->
-
-		@_rightPoint
-
-	getLeftHandler: ->
-
-		@_leftHandler
-
-	getRightHandler: ->
-
-		@_rightHandler
 
 	reactToChangesInRightPoint: ->
 

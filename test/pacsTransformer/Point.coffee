@@ -148,6 +148,21 @@ describe "Point", ->
 			expect(points[2]._leftPoint).to.equal points[1]
 			expect(points[2]._rightPoint).to.equal null
 
+			for p in points
+
+				p.remove().insert()
+
+			expect(points[0]._leftPoint).to.equal null
+			expect(points[0]._rightPoint).to.equal points[1]
+
+			expect(points[1]._leftPoint).to.equal points[0]
+			expect(points[1]._rightPoint).to.equal points[2]
+
+			expect(points[2]._leftPoint).to.equal points[1]
+			expect(points[2]._rightPoint).to.equal null
+
+			return
+
 		it.skip "should throw if it gets in between a connection"
 
 	describe "remove()", ->
@@ -178,3 +193,99 @@ describe "Point", ->
 	describe "_getRemovedFromSequence()", ->
 
 		it.skip "should throw if the point is connected", ->
+
+		it "should reset the links", ->
+
+			pacs = new BezierPacs
+
+			points = []
+
+			for i in [0..2]
+
+				points.push pacs.createPoint().belongTo(pacs).setTime(i * 100).insert()
+
+			points[1].remove()
+
+			expect(points[0]._leftPoint).to.equal null
+			expect(points[0]._rightPoint).to.equal points[2]
+
+			expect(points[1]._leftPoint).to.equal null
+			expect(points[1]._rightPoint).to.equal null
+
+			expect(points[2]._leftPoint).to.equal points[0]
+			expect(points[2]._rightPoint).to.equal null
+
+	describe "connectToLeft()", ->
+
+		it "should throw if already connected"
+
+		it "should throw if not in sequence", ->
+
+			(-> (new BezierPacs).createPoint().connectToLeft()).should.throw()
+
+		it "should throw if we're the first point in sequence", ->
+
+			pacs = new BezierPacs
+			p1 = pacs.createPoint()
+			.belongTo pacs
+			.insert()
+
+			p2 = pacs.createPoint().setTime(100).belongTo(pacs).insert()
+
+			(-> p1.connectToLeft()).should.throw()
+
+	describe "connectToRight()", ->
+
+		it "should throw if we're the last point in sequence", ->
+
+			pacs = new BezierPacs
+			p1 = pacs.createPoint()
+			.belongTo pacs
+			.insert()
+
+			p2 = pacs.createPoint().setTime(100).belongTo(pacs).insert()
+
+			(-> p2.connectToRight()).should.throw()
+
+	describe "setTime()", ->
+
+		it "should set the point's time", ->
+
+			p = (new BezierPacs).createPoint()
+
+			(-> p.getTime()).should.change.to(200).when -> p.setTime 200
+
+			# p.getTime().should.equal 200
+
+		it "should emit 'time-change'", ->
+
+			p = (new BezierPacs).createPoint()
+
+			p.events.on 'time-change', spy = sinon.spy()
+
+			p.setTime 200
+
+			spy.should.have.been.calledOnce
+			spy.should.have.been.calledWith 200
+
+		it "should throw if moving it past its left/right neighbours", ->
+
+			pacs = new BezierPacs
+
+			pacs.createPoint().belongTo(pacs).setTime(100).insert()
+			pacs.createPoint().belongTo(pacs).setTime(300).insert()
+			p = pacs.createPoint().belongTo(pacs).setTime(200).insert()
+
+			(-> p.setTime(301)).should.throw()
+
+		it "should not throw if moving it past its left/right neighbours after removing it out of sequence", ->
+
+			pacs = new BezierPacs
+
+			pacs.createPoint().belongTo(pacs).setTime(100).insert()
+			pacs.createPoint().belongTo(pacs).setTime(300).insert()
+			p = pacs.createPoint().belongTo(pacs).setTime(200).insert()
+
+			p.remove()
+
+			(-> p.setTime(301)).should.not.throw()

@@ -1,3 +1,10 @@
-require('chai').use(require 'chai-fuzzy').should()
+chai = require('chai')
 
-global.expect = require('chai').expect
+chai
+.use(require 'chai-fuzzy')
+.use(require 'chai-changes')
+.use(require 'sinon-chai')
+.should()
+
+global.expect = chai.expect
+global.sinon = require 'sinon'
