@@ -6,7 +6,8 @@ makeConnector = ->
 
 	pacs = new BezierPacs
 
-	c = new Connector pacs
+	c = new Connector
+	c._pacs = pacs
 	pacs._reportChange = sinon.spy()
 	c.changeSpy = pacs._reportChange
 	c

@@ -163,7 +163,18 @@ describe "Point", ->
 
 			return
 
-		it.skip "should throw if it gets in between a connection"
+		it "should throw if it gets in between a connection", ->
+
+			pacs = new BezierPacs
+
+			p1 = pacs.createPoint().setTime(0).belongTo(pacs).insert()
+			p2 = pacs.createPoint().setTime(100).belongTo(pacs).insert()
+			p1.connectToRight()
+
+			p3 = pacs.createPoint().setTime(50).belongTo(pacs)
+
+			(-> p3.insert()).should.throw()
+
 
 	describe "remove()", ->
 
@@ -192,8 +203,6 @@ describe "Point", ->
 
 	describe "_getRemovedFromSequence()", ->
 
-		it.skip "should throw if the point is connected", ->
-
 		it "should reset the links", ->
 
 			pacs = new BezierPacs
@@ -215,9 +224,41 @@ describe "Point", ->
 			expect(points[2]._leftPoint).to.equal points[0]
 			expect(points[2]._rightPoint).to.equal null
 
+		it "should throw if the point is connected", ->
+
+			pacs = new BezierPacs
+
+			p1 = pacs.createPoint().setTime(0).belongTo(pacs).insert()
+			p2 = pacs.createPoint().setTime(100).belongTo(pacs).insert()
+			p1.connectToRight()
+
+			(-> p1.remove()).should.throw()
+
+
 	describe "connectToLeft()", ->
 
-		it "should throw if already connected"
+		it "should connect the point to the left", ->
+
+			pacs = new BezierPacs
+			p1 = pacs.createPoint()
+			.belongTo pacs
+			.insert()
+
+			p2 = pacs.createPoint()
+			.setTime 200
+			.belongTo pacs
+			.insert()
+
+			p2.connectToLeft()
+
+			p1.isConnectedToRight().should.equal yes
+			p2.isConnectedToLeft().should.equal yes
+
+			p1.getRightConnector().should.equal p2.getLeftConnector()
+
+		it "should throw if already connected", ->
+
+			(-> p2.connectToLeft()).should.throw()
 
 		it "should throw if not in sequence", ->
 
@@ -246,6 +287,59 @@ describe "Point", ->
 			p2 = pacs.createPoint().setTime(100).belongTo(pacs).insert()
 
 			(-> p2.connectToRight()).should.throw()
+
+		it "should just call right point's connectToLeft()", ->
+
+			pacs = new BezierPacs
+			p1 = pacs.createPoint()
+			.belongTo pacs
+			.insert()
+
+			p2 = pacs.createPoint()
+			.setTime 200
+			.belongTo pacs
+			.insert()
+
+			p1.connectToRight()
+
+			p1.isConnectedToRight().should.equal yes
+			p2.isConnectedToLeft().should.equal yes
+
+			p1.getRightConnector().should.equal p2.getLeftConnector()
+
+	describe "disconnectFromLeft()", ->
+
+		it "should remove connection to the left", ->
+
+			pacs = new BezierPacs
+			p1 = pacs.createPoint()
+			.belongTo pacs
+			.insert()
+
+			p2 = pacs.createPoint()
+			.setTime 200
+			.belongTo pacs
+			.insert()
+
+			p2.connectToLeft()
+			p2.disconnectFromLeft()
+
+			p2.isConnectedToLeft().should.equal no
+			p1.isConnectedToRight().should.equal no
+
+		it "should throw if we're not connected", ->
+
+			pacs = new BezierPacs
+			p1 = pacs.createPoint()
+			.belongTo pacs
+			.insert()
+
+			p2 = pacs.createPoint()
+			.setTime 200
+			.belongTo pacs
+			.insert()
+
+			(-> p2.disconnectFromLeft()).should.throw()
 
 	describe "setTime()", ->
 
@@ -289,3 +383,5 @@ describe "Point", ->
 			p.remove()
 
 			(-> p.setTime(301)).should.not.throw()
+
+		it.skip "should report time change"

@@ -2,7 +2,7 @@ PipingEmitter = require 'utila/lib/PipingEmitter'
 
 module.exports = class Connector
 
-	constructor: (@_pacs) ->
+	constructor: ->
 
 		@events = new PipingEmitter
 

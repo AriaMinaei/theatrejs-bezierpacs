@@ -1,6 +1,6 @@
 PipingEmitter = require 'utila/lib/PipingEmitter'
-clamp = require 'utila/lib/math/clamp'
 Connector = require './Connector'
+clamp = require 'utila/lib/math/clamp'
 
 module.exports = class Point
 
@@ -22,7 +22,7 @@ module.exports = class Point
 		@_leftConnector = null
 		@_rightConnector = null
 
-		@_carriedConnector = new Connector
+		@_carriedConnector = new Connector this
 
 
 	belongTo: (pacs) ->
@@ -43,10 +43,14 @@ module.exports = class Point
 
 	_reactToBeingOwned: ->
 
+		@_carriedConnector._pacs = @_pacs
+
 		# TODO: rename
 		@events._emit 'belong'
 
 	_reactToBeingDisowned: ->
+
+		@_carriedConnector._pacs = null
 
 		# TODO: rename
 		@events._emit 'disbelong'
@@ -155,6 +159,14 @@ module.exports = class Point
 
 		do @disbelong
 
+	getLeftConnector: ->
+
+		@_leftConnector
+
+	getRightConnector: ->
+
+		@_rightConnector
+
 	isConnectedToRight: ->
 
 		@_rightConnector?
@@ -177,7 +189,15 @@ module.exports = class Point
 
 			throw Error "Can't connect to left. We're the first point in the sequence."
 
+		@_carriedConnector._readFromLeftPoint @_leftPoint
+		@_carriedConnector._readFromRightPoint this
 
+		@_leftConnector = @_carriedConnector
+		@_leftPoint._rightConnector = @_carriedConnector
+
+		@_carriedConnector.activate()
+
+		this
 
 	connectToRight: ->
 
@@ -193,7 +213,30 @@ module.exports = class Point
 
 			throw Error "Can't connect to right. We're the last point in the sequence."
 
-		@_rightPoint.connectToRight()
+		@_rightPoint.connectToLeft()
+
+		this
+
+	disconnectFromLeft: ->
+
+		unless @_leftConnector?
+
+			throw Error "Not connected to the left."
+
+		@_carriedConnector.deactivate()
+
+		@_leftConnector = null
+		@_leftPoint._rightConnector = null
+
+		this
+
+	disconnectFromRight: ->
+
+		unless @_rightConnector?
+
+			throw Error "Not connected to the right."
+
+		@_rightPoint.disconnectFromLeft()
 
 		this
 
@@ -222,6 +265,8 @@ module.exports = class Point
 
 		else
 
+			oldTime = @_time
+
 			leftConfinement = if @_leftPoint? then @_leftPoint._time else -Infinity
 			rightConfinement = if @_rightPoint? then @_rightPoint._time else Infinity
 
@@ -233,13 +278,15 @@ module.exports = class Point
 
 			if @_leftConnector?
 
-				@_leftConnector._setRightTime @_time
+				@_leftConnector._readFromRightPoint this
 
 			if @_rightConnector?
 
-				@_leftConnector._setLeftTime @_time
+				@_rightConnector._readFromLeftPoint this
 
 		@events._emit 'time-change', t
+
+		# TODO: report change
 
 		@
 
