@@ -24,7 +24,6 @@ module.exports = class Point
 
 		@_carriedConnector = new Connector this
 
-
 	belongTo: (pacs) ->
 
 		pacs._list.own this
@@ -242,20 +241,45 @@ module.exports = class Point
 
 	isEventuallyConnectedTo: (targetPoint) ->
 
-		myIndex = @_list.getPointIndex this
-		targetIndex = @_list.getPointIndex targetPoint
+		if targetPoint._time < @_time
 
-		needConnector = no
+			return @_isEventuallyConnectedToPointOnTheLeft targetPoint
 
-		for index in [myIndex..targetIndex]
+		else if targetPoint._time > @_time
 
-			if needConnector
+			return @_isEventuallyConnectedToPointOnTheRight targetPoint
 
-				return no unless @_list.getByIndex(index).isConnector()
+		else
 
-			needConnector = !needConnector
+			throw Error "Uh oh"
 
-		yes
+	_isEventuallyConnectedToPointOnTheLeft: (targetPoint) ->
+
+		currentPoint = this
+
+		loop
+
+			return no unless currentPoint.isConnectedToLeft()
+
+			currentPoint = currentPoint._leftPoint
+
+			return yes if currentPoint is targetPoint
+
+		return no
+
+	_isEventuallyConnectedToPointOnTheRight: (targetPoint) ->
+
+		currentPoint = this
+
+		loop
+
+			return no unless currentPoint.isConnectedToRight()
+
+			currentPoint = currentPoint._rightPoint
+
+			return yes if currentPoint is targetPoint
+
+		return no
 
 	setTime: (t) ->
 

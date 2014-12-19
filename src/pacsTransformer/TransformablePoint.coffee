@@ -32,8 +32,6 @@ module.exports = class TransformablePoint
 
 		@time = @_initialTime
 		@value = @_initialValue
-		@leftHandler.set @_initialLeftHandler
-		@rightHandler.set @_initialRightHandler
 
 		this
 

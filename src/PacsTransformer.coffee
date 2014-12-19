@@ -1,11 +1,13 @@
-TransformablePoint = require './pacsTransformer/TransformablePoint'
+PointProxy = require './pacsTransformer/PointProxy'
+PointProxyList = require './pacsTransformer/PointProxyList'
 ActionQueue = require './ActionQueue'
 
 module.exports = class PacsTransformer
 
 	constructor: (@pacs) ->
 
-		@_pointsArray = []
+		@_points = new PointProxyList
+
 		do @clear
 
 		stepOrder = [
@@ -20,14 +22,13 @@ module.exports = class PacsTransformer
 			'remakeInternalConnections'
 		]
 
-		@_listOfUnselectedPointsConnectedToRightInterjectedBySelectedPoints = []
+		@_unselectedPointsWhoseRightConnectionsAreInterjectedBySelectedPoints = []
 
 		@_actionQueue = new ActionQueue stepOrder
 
 	clear: ->
 
-		@_pointsMap = {}
-		@_pointsArray.length = 0
+		@_points.clear()
 		@_initialModelIsReady = no
 		@_confinementsInvalid = yes
 		@_selection = null
@@ -52,50 +53,50 @@ module.exports = class PacsTransformer
 
 	_buildInitialModel: ->
 
-		points = @_selection.getPoints()
+		unsortedPoints = @_selection.getPoints()
 
-		if points.length is 0
+		if unsortedPoints.length is 0
 
 			throw Error "Cannot accept an empty list of points"
 
-		orderedPoints = []
+		points = []
 
-		orderedPoints.push p for p in points
+		points.push p for p in unsortedPoints
 
-		orderedPoints.sort (a, b) -> a._time - b._time
+		points.sort (a, b) -> a._time - b._time
 
-		length = orderedPoints.length
+		length = points.length
 
-		for p, i in orderedPoints
+		for p, i in points
 
-			transformablePoint = new TransformablePoint p
+			pointProxy = new PointProxy p
 
 			first = i is 0
 			last = i is length - 1
 
-			transformablePoint.firstSelectedPoint = first
-			transformablePoint.lastSelectedPoint = last
+			pointProxy.firstSelectedPoint = first
+			pointProxy.lastSelectedPoint = last
 
-			connectedBack = not first and p.isEventuallyConnectedTo orderedPoints[i-1]
-			connectedForward = not last and p.isEventuallyConnectedTo orderedPoints[i+1]
+			connectedBack = not first and p.isEventuallyConnectedTo points[i-1]
+			connectedForward = not last and p.isEventuallyConnectedTo points[i+1]
 
-			transformablePoint.wasConnectedToPrevSelectedPoint = connectedBack
-			transformablePoint.wasConnectedToNextSelectedPoint = connectedForward
+			pointProxy.wasConnectedToPrevSelectedPoint = connectedBack
+			pointProxy.wasConnectedToNextSelectedPoint = connectedForward
 
 			unless connectedBack
 
 				c = p.getLeftConnector()
 
-				if c? then transformablePoint.prevConnectedUnselectedNeighbour = c.getLeftPoint().id
+				if c? then pointProxy.prevConnectedUnselectedNeighbour = c.getLeftPoint().id
 
 			unless connectedForward
 
 				c = p.getRightConnector()
 
-				if c? then transformablePoint.nextConnectedUnselectedNeighbour = c.getRightPoint().id
+				if c? then pointProxy.nextConnectedUnselectedNeighbour = c.getRightPoint().id
 
-			@_pointsArray.push transformablePoint
-			@_pointsMap[transformablePoint.idInPacs] = transformablePoint
+			@_pointsArray.push pointProxy
+			@_pointsMap[pointProxy.idInPacs] = pointProxy
 
 		return
 
@@ -272,11 +273,11 @@ module.exports = class PacsTransformer
 
 			unselectedPointsToConsider.push lastSelectedPoint.getRightConnector().getRightPoint()
 
-		@_listOfUnselectedPointsConnectedToRightInterjectedBySelectedPoints.length = 0
+		@_unselectedPointsWhoseRightConnectionsAreInterjectedBySelectedPoints.length = 0
 
 		return if unselectedPointsToConsider.length < 2
 
-		list = @_listOfUnselectedPointsConnectedToRightInterjectedBySelectedPoints
+		list = @_unselectedPointsWhoseRightConnectionsAreInterjectedBySelectedPoints
 
 		for i in [0..unselectedPointsToConsider.length - 2]
 
@@ -324,7 +325,7 @@ module.exports = class PacsTransformer
 
 		@_actionQueue.startStep 'remakeExternalConnections'
 
-		for id in @_listOfUnselectedPointsConnectedToRightInterjectedBySelectedPoints
+		for id in @_unselectedPointsWhoseRightConnectionsAreInterjectedBySelectedPoints
 
 			p = @pacs.getItemById id
 
