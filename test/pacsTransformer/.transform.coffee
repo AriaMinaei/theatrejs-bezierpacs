@@ -28,8 +28,6 @@ describe "PacsTransformer", ->
 
 	describe "transform()", ->
 
-		return
-
 		it "should apply a transform on each point's initial state"
 
 		describe "for points moving in confinement", ->

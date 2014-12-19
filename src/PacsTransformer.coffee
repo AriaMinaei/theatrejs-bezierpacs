@@ -1,6 +1,6 @@
 PointProxy = require './pacsTransformer/PointProxy'
 PointProxyList = require './pacsTransformer/PointProxyList'
-ActionQueue = require './ActionQueue'
+CommandSteppifier = require './CommandSteppifier'
 
 module.exports = class PacsTransformer
 
@@ -10,7 +10,8 @@ module.exports = class PacsTransformer
 
 		do @clear
 
-		stepOrder = [
+		@_steppifier = new CommandSteppifier [
+
 			'dcInternalToExternalConnections'
 			'dcInternalConnections'
 			'getOffSequence'
@@ -20,11 +21,11 @@ module.exports = class PacsTransformer
 			'getInSequence'
 			'remakeInterjectedExternalConnections'
 			'remakeInternalConnections'
+
 		]
 
 		@_unselectedPointsWhoseRightConnectionsAreInterjectedBySelectedPoints = []
 
-		@_actionQueue = new ActionQueue stepOrder
 
 	clear: ->
 
@@ -145,17 +146,19 @@ module.exports = class PacsTransformer
 
 		do @_ensureConfinementsAreUpToDate
 
-		offConfinement = no
+		inCurrentConfinement = yes
+		inInitialConfinement = yes
 
-		for p in @_proxiesArray
+		for proxy in @_proxies.list
 
-			p.reset()
+			proxy.resetCurrentState()
 
-			fn p
+			fn proxy.currentState
 
-			offConfinement = yes unless p.isInConfinement()
+			inCurrentConfinement = no unless proxy.isInCurrentConfinement()
+			inInitialConfinement = no unless proxy.isInInitialConfinement()
 
-		if offConfinement
+		unless inCurrentConfinement
 
 			@_confinementsInvalid = yes
 
@@ -171,53 +174,30 @@ module.exports = class PacsTransformer
 
 	_applyProps: ->
 
-		# isFirstTimeSettingTime = not @_actionQueue.haveTakenStepsBefore 'applyProps'
+		step = @_steppifier.getStep 'applyProps'
 
-		@_actionQueue.startStep 'applyProps'
+		first = @_proxies.list[0]
 
-		p = @_proxiesArray[0]
+		increment = if first.currentState.time > first.initialState.time then 1 else -1
 
-		forward = p.time > p._initialTime
+		for proxy in @_proxies.list by increment
 
-		if forward
+			step.addCommand pointProxyCommands.applyProps(p).applyForward()
 
-			for i in [(@_proxiesArray.length - 1)..0]
-
-				p = @_proxiesArray[i]
-
-				@_actionQueue
-				.getActionUnitFor 'point.applyProps', p #, {ignoreSettingBackwardProps: not isFirstTimeSettingTime}
-				.captureProps()
-				.applyForward()
-
-				# p.applyToInitialPoint()
-
-		else
-
-			for p in @_proxiesArray
-
-				@_actionQueue
-				.getActionUnitFor 'point.applyProps', p #, {ignoreSettingBackwardProps: not isFirstTimeSettingTime}
-				.captureProps()
-				.applyForward()
-
-				# p.applyToInitialPoint()
-
-
-		@_actionQueue.endStep 'applyProps'
+		return
 
 	_reOrder: ->
 
-		@_actionQueue.rollBack()
+		@_steppifier.rollBack()
 
-		# if not @_actionQueue.haveTakenStepsBefore 'applyProps'
+		# if not @_steppifier.haveTakenStepsBefore 'applyProps'
 
 		do @_dcExternalEventualConnectionsInterjectedBySelectedPoints
 		do @_dcInternalConnections
 		do @_getOffSequence
 		do @_remakeExternalConnections
 
-		# @_actionQueue.rollBackTo 'applyProps'
+		# @_steppifier.rollBackTo 'applyProps'
 
 		do @_applyProps
 		do @_dcExternalConnectionsToBeInterjected
@@ -281,60 +261,60 @@ module.exports = class PacsTransformer
 
 	_getOffSequence: ->
 
-		@_actionQueue.startStep 'getOffSequence'
+		@_steppifier.startStep 'getOffSequence'
 
 		for p in @_proxiesArray
 
 			if p.initialPoint.getLeftConnector()?
 
-				@_actionQueue
+				@_steppifier
 				.getActionUnitFor 'point.disconnectLeft', p.initialPoint
 				.applyForward()
 
 			if p.initialPoint.getRightConnector()?
 
-				@_actionQueue
+				@_steppifier
 				.getActionUnitFor 'point.disconnectRight', p.initialPoint
 				.applyForward()
 
 		for p in @_proxiesArray
 
-			@_actionQueue
+			@_steppifier
 			.getActionUnitFor 'point.getOffSequence', p.initialPoint
 			.applyForward()
 
-		@_actionQueue.endStep 'getOffSequence'
+		@_steppifier.endStep 'getOffSequence'
 
 
 		return
 
 	_remakeExternalConnections: ->
 
-		@_actionQueue.startStep 'remakeExternalConnections'
+		@_steppifier.startStep 'remakeExternalConnections'
 
 		for id in @_unselectedPointsWhoseRightConnectionsAreInterjectedBySelectedPoints
 
 			p = @pacs.getItemById id
 
-			@_actionQueue
+			@_steppifier
 			.getActionUnitFor 'point.connectRight', p
 			.applyForward()
 
-		@_actionQueue.endStep 'remakeExternalConnections'
+		@_steppifier.endStep 'remakeExternalConnections'
 
 	_dcExternalConnectionsToBeInterjected: ->
 
 	_getInSequence: ->
 
-		@_actionQueue.startStep 'getInSequence'
+		@_steppifier.startStep 'getInSequence'
 
 		for p in @_proxiesArray
 
-			@_actionQueue
+			@_steppifier
 			.getActionUnitFor 'point.getInSequence', p.initialPoint
 			.applyForward()
 
-		@_actionQueue.endStep 'getInSequence'
+		@_steppifier.endStep 'getInSequence'
 
 
 	_remakeInterjectedExternalConnections: ->

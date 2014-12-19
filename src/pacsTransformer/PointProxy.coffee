@@ -36,8 +36,20 @@ module.exports = class PointProxy
 		this
 
 	# Resets the current state to the initial state
-	reset: ->
+	resetCurrentState: ->
 
 		@currentState._readFromState @initialState
 
 		this
+
+	isInCurrentConfinement: ->
+
+		@_inConfinement @initialState, @currentConfinement
+
+	isInInitialConfinement: ->
+
+		@_inConfinement @initialState, @initialConfinement
+
+	_inConfinement: (p, conf) ->
+
+		conf[0] < p.time < conf[1]
