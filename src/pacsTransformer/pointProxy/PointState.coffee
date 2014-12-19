@@ -16,3 +16,8 @@ module.exports = class PointState
 
 		@time = state.time
 		@value = state.value
+
+	_writeToPoint: (p) ->
+
+		p.setTime @time
+		p.setValue @value

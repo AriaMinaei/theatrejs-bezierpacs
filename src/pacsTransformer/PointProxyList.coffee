@@ -4,12 +4,13 @@ module.exports = class PointProxyList
 
 		@list = []
 		@map = {}
+		@points = []
 
 	add: (pointProxy) ->
 
 		@list.push pointProxy
 		@map[pointProxy.id] = pointProxy
-
+		@points.push pointProxy.point
 		this
 
 	hasId: (id) ->

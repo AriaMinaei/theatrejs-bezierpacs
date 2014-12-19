@@ -17,7 +17,7 @@ example = (opts, funcType) ->
 
 		{pacs, transformer} = stringToStuff from
 		transformer.transform func
-		to.should.equal pacsToString pacs
+		pacsToString(pacs).should.equal to
 		# transformer.transform (p) ->
 		# from.should.equal pacsToString pacs
 
@@ -42,8 +42,6 @@ describe "PacsTransformer", ->
 						to:   "a   x b"
 						fn: "+100"
 
-					return
-
 					example
 
 						from: "a  x  b"
@@ -61,8 +59,6 @@ describe "PacsTransformer", ->
 						from: "a  x  b y  c"
 						to:   "a   x b  y c"
 						fn: "+100"
-
-				return
 
 				describe "if the point is connected to unselected points, we should keep the connections.", ->
 
@@ -95,8 +91,6 @@ describe "PacsTransformer", ->
 						from: "a--x--b-y--c"
 						to:   "a---x-b--y-c"
 						fn: "+100"
-
-			return
 
 			describe "for multiple points", ->
 
@@ -134,8 +128,6 @@ describe "PacsTransformer", ->
 						to:   "a---x-y-b--z-w"
 						fn: "+100"
 
-		return
-
 		describe "for points moving out of confinement", ->
 
 			# Alright, so, we don't know exactly how pacs should behaved if a bunch
@@ -154,14 +146,14 @@ describe "PacsTransformer", ->
 					example
 
 						from: "a-x-b"
-						to:   "a--b x"
-						fn: "+200"
+						to:   "a---b x"
+						fn: "+400"
 
 					_example
 
 						from: "a-x-y-b"
 						to:   "a-----b x-y"
-						fn: "+300"
+						fn: "+600"
 
 					_example
 

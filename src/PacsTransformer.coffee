@@ -1,6 +1,7 @@
 PointProxy = require './pacsTransformer/PointProxy'
 PointProxyList = require './pacsTransformer/PointProxyList'
 CommandSteppifier = require './CommandSteppifier'
+pointProxyCommands = require './pacsTransformer/pointProxyCommands'
 
 module.exports = class PacsTransformer
 
@@ -14,18 +15,19 @@ module.exports = class PacsTransformer
 
 			'dcInternalToExternalConnections'
 			'dcInternalConnections'
-			'getOffSequence'
+			'remove'
 			'remakeExternalConnections'
 			'applyProps'
 			'dcExternalConnectionsToBeInterjected'
-			'getInSequence'
+			'insert'
 			'remakeInterjectedExternalConnections'
 			'remakeInternalConnections'
 
 		]
 
-		@_unselectedPointsWhoseRightConnectionsAreInterjectedBySelectedPoints = []
+		@_lastRearrangementType = 'inConfinement'
 
+		@_initiallyRightConnectedUnselectedPointsInterjectedByInitiallySelectedPoints = []
 
 	clear: ->
 
@@ -105,8 +107,6 @@ module.exports = class PacsTransformer
 			leftConfinement = -Infinity
 			prevPoint = proxy.point
 
-			console.log 'doing', proxy.id
-
 			# left confinement
 			loop
 
@@ -123,6 +123,7 @@ module.exports = class PacsTransformer
 			rightConfinement = Infinity
 			nextPoint = proxy.point
 
+			# right confinement
 			loop
 
 				nextPoint = nextPoint.getRightPoint()
@@ -162,15 +163,13 @@ module.exports = class PacsTransformer
 
 			@_confinementsInvalid = yes
 
-			do @_reOrder
+			@_reArrange inInitialConfinement
 
 		else
 
 			do @_applyProps
 
 		this
-
-	undo: ->
 
 	_applyProps: ->
 
@@ -182,69 +181,76 @@ module.exports = class PacsTransformer
 
 		for proxy in @_proxies.list by increment
 
-			step.addCommand pointProxyCommands.applyProps(p).applyForward()
+			step.appendCommand pointProxyCommands.applyProps(null, proxy).do()
 
 		return
 
-	_reOrder: ->
+	_reArrange: (toInitialConfinement) ->
 
-		@_steppifier.rollBack()
+		if toInitialConfinement
 
-		# if not @_steppifier.haveTakenStepsBefore 'applyProps'
+			@_steppifier.rollBack()
 
-		do @_dcExternalEventualConnectionsInterjectedBySelectedPoints
-		do @_dcInternalConnections
-		do @_getOffSequence
-		do @_remakeExternalConnections
+			@_lastRearrangementType = 'inConfinement'
 
-		# @_steppifier.rollBackTo 'applyProps'
+			do @_applyProps
+
+			return
+
+		if @_lastRearrangementType is 'inConfinement'
+
+			do @_dcExternalEventualConnectionsInterjectedBySelectedPoints
+			do @_remove
+			do @_remakeExternalConnections
+
+		else
+
+			@_steppifier.rollBackTo 'applyProps'
 
 		do @_applyProps
-		do @_dcExternalConnectionsToBeInterjected
-		do @_getInSequence
-		do @_remakeInterjectedExternalConnections
+		do @_insert
 		do @_remakeInternalConnections
+
+		return
+		do @_dcExternalConnectionsToBeInterjected
+		do @_remakeInterjectedExternalConnections
 
 	_dcExternalEventualConnectionsInterjectedBySelectedPoints: ->
 
+		list = @_initiallyRightConnectedUnselectedPointsInterjectedByInitiallySelectedPoints
+		list.length = 0
+
 		unselectedPointsToConsider = []
+		points = @_proxies.points
 
-		firstLeftConnector = @_proxiesArray[0].initialPoint.getLeftConnector()
-		if firstLeftConnector?
+		firstPoint = points[0]
+		lastPoint = points[points.length - 1]
 
-			unselectedPointsToConsider.push firstLeftConnector.getLeftPoint()
+		if firstPoint.isConnectedToLeft()
 
-		fromIndex = @pacs.getItemIndex(@_proxiesArray[0].initialPoint) + 1
-		toIndex = @pacs.getItemIndex(@_proxiesArray[@_proxiesArray.length - 1].initialPoint) - 1
+			unselectedPointsToConsider.push firstPoint.getLeftPoint()
 
-		fromIndex = Math.min fromIndex, toIndex
-		toIndex = Math.max fromIndex, toIndex
+		currentPoint = firstPoint
 
-		for i in [fromIndex..toIndex]
+		loop
 
-			item = @pacs.getItemByIndex i
+			currentPoint = currentPoint.getRightPoint()
 
-			unless item?
+			break unless currentPoint?
 
-				throw Error "#{i}???"
+			break if currentPoint is lastPoint
 
-			continue if item.isConnector()
+			break if currentPoint._time > lastPoint._time
 
-			continue if @_proxiesMap[item.id]?
+			unless @_proxies.hasPoint currentPoint
 
-			unselectedPointsToConsider.push item
+				unselectedPointsToConsider.push currentPoint
 
-		lastSelectedPoint = @_proxiesArray[@_proxiesArray.length - 1].initialPoint
+		if lastPoint.isConnectedToRight()
 
-		if lastSelectedPoint.getRightConnector()?
-
-			unselectedPointsToConsider.push lastSelectedPoint.getRightConnector().getRightPoint()
-
-		@_unselectedPointsWhoseRightConnectionsAreInterjectedBySelectedPoints.length = 0
+			unselectedPointsToConsider.push lastPoint.getRightPoint()
 
 		return if unselectedPointsToConsider.length < 2
-
-		list = @_unselectedPointsWhoseRightConnectionsAreInterjectedBySelectedPoints
 
 		for i in [0..unselectedPointsToConsider.length - 2]
 
@@ -253,69 +259,51 @@ module.exports = class PacsTransformer
 
 			if curPoint.isEventuallyConnectedTo nextPoint
 
-				list.push curPoint.id
+				list.push curPoint._id
 
 		return
 
 	_dcInternalConnections: ->
 
-	_getOffSequence: ->
+	_remove: ->
 
-		@_steppifier.startStep 'getOffSequence'
+		step = @_steppifier.getStep 'remove'
 
-		for p in @_proxiesArray
+		for p in @_proxies.points
 
-			if p.initialPoint.getLeftConnector()?
+			if p.isConnectedToLeft()
 
-				@_steppifier
-				.getActionUnitFor 'point.disconnectLeft', p.initialPoint
-				.applyForward()
+				step.appendCommand pointProxyCommands.disconnectFromLeft(p).do()
 
-			if p.initialPoint.getRightConnector()?
+			if p.isConnectedToRight()
 
-				@_steppifier
-				.getActionUnitFor 'point.disconnectRight', p.initialPoint
-				.applyForward()
+				step.appendCommand pointProxyCommands.disconnectFromRight(p).do()
 
-		for p in @_proxiesArray
+		for p in @_proxies.points
 
-			@_steppifier
-			.getActionUnitFor 'point.getOffSequence', p.initialPoint
-			.applyForward()
-
-		@_steppifier.endStep 'getOffSequence'
-
+			step.appendCommand pointProxyCommands.remove(p).do()
 
 		return
 
 	_remakeExternalConnections: ->
 
-		@_steppifier.startStep 'remakeExternalConnections'
+		step = @_steppifier.getStep 'remakeExternalConnections'
 
-		for id in @_unselectedPointsWhoseRightConnectionsAreInterjectedBySelectedPoints
+		for id in @_initiallyRightConnectedUnselectedPointsInterjectedByInitiallySelectedPoints
 
-			p = @pacs.getItemById id
+			p = @pacs._list.getById id
 
-			@_steppifier
-			.getActionUnitFor 'point.connectRight', p
-			.applyForward()
-
-		@_steppifier.endStep 'remakeExternalConnections'
+			step.appendCommand pointProxyCommands.connectToRight(p).do()
 
 	_dcExternalConnectionsToBeInterjected: ->
 
-	_getInSequence: ->
+	_insert: ->
 
-		@_steppifier.startStep 'getInSequence'
+		step = @_steppifier.getStep 'insert'
 
-		for p in @_proxiesArray
+		for p in @_proxies.points
 
-			@_steppifier
-			.getActionUnitFor 'point.getInSequence', p.initialPoint
-			.applyForward()
-
-		@_steppifier.endStep 'getInSequence'
-
+			step.appendCommand pointProxyCommands.insert(p).do()
 
 	_remakeInterjectedExternalConnections: ->
 

@@ -44,12 +44,24 @@ module.exports = class PointProxy
 
 	isInCurrentConfinement: ->
 
-		@_inConfinement @initialState, @currentConfinement
+		@_inConfinement @currentState, @currentConfinement
 
 	isInInitialConfinement: ->
 
-		@_inConfinement @initialState, @initialConfinement
+		@_inConfinement @currentState, @initialConfinement
 
 	_inConfinement: (p, conf) ->
 
 		conf[0] < p.time < conf[1]
+
+	applyFromCurrentState: ->
+
+		@currentState._writeToPoint @point
+
+		this
+
+	applyFromInitialState: ->
+
+		@currentState._writeToPoint @point
+
+		this
