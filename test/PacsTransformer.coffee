@@ -1,4 +1,4 @@
-{stringToStuff, pacsToString} = require './pacsTransformer/helpers'
+{stringToStuff, pacsToString} = require './helpers'
 
 describe "PacsTransformer", ->
 
@@ -12,17 +12,17 @@ describe "PacsTransformer", ->
 
 	describe "_buildInitialModel()", ->
 
-		it.skip "should build a list of TransformablePoint-s", ->
+		it "should build a list of PointProxies", ->
 
-			{pacs, selection, transformer} = stringToStuff "a x b y c z"
+			{transformer} = stringToStuff "a x b y c z"
 
 			transformer._ensureInitialModelIsReady()
 
-			transformer._pointsArray[0].initialPoint.name.should.equal 'x'
-			transformer._pointsArray[1].initialPoint.name.should.equal 'y'
-			transformer._pointsArray[2].initialPoint.name.should.equal 'z'
+			transformer._proxies.list[0].point.name.should.equal 'x'
+			transformer._proxies.list[1].point.name.should.equal 'y'
+			transformer._proxies.list[2].point.name.should.equal 'z'
 
-		it.skip "should build the list in order", ->
+		it "should build the list in order", ->
 
 			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
 
@@ -31,71 +31,71 @@ describe "PacsTransformer", ->
 			selection.addPoint selectedPoints.x
 
 			transformer._ensureInitialModelIsReady()
-			transformer._pointsArray[0].initialPoint.name.should.equal 'x'
-			transformer._pointsArray[1].initialPoint.name.should.equal 'y'
+			transformer._proxies.list[0].point.name.should.equal 'x'
+			transformer._proxies.list[1].point.name.should.equal 'y'
 
-		it.skip "should also build a map with each point's id as keys", ->
-
-			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
-
-			transformer._ensureInitialModelIsReady()
-
-			transformer._pointsMap[1].initialPoint.name.should.equal 'x'
-			transformer._pointsMap[2].initialPoint.name.should.equal 'y'
-
-		it.skip "should tell each point if it is the first or last in the list of selected points", ->
+		it "should also build a map with each point's id as keys", ->
 
 			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
 
 			transformer._ensureInitialModelIsReady()
 
-			transformer._pointsArray[0].firstSelectedPoint.should.equal yes
-			transformer._pointsArray[1].firstSelectedPoint.should.equal no
+			transformer._proxies.map[1].point.name.should.equal 'x'
+			transformer._proxies.map[2].point.name.should.equal 'y'
 
-			transformer._pointsArray[0].lastSelectedPoint.should.equal no
-			transformer._pointsArray[1].lastSelectedPoint.should.equal yes
+		it "should tell each point if it is the first or last in the list of selected points", ->
 
-		it.skip "should tell each point if it was connected to its direct unselected neighbour", ->
-
-			{pacs, selection, transformer, selectedPoints, idOf, transformablePoint} = stringToStuff "a-x y-b z-w-c-u"
+			{pacs, selection, transformer, selectedPoints} = stringToStuff "a x y"
 
 			transformer._ensureInitialModelIsReady()
 
-			expect(transformablePoint('x').prevConnectedUnselectedNeighbour).to.equal idOf('a')
-			expect(transformablePoint('x').nextConnectedUnselectedNeighbour).to.equal null
+			transformer._proxies.list[0].firstSelectedPoint.should.equal yes
+			transformer._proxies.list[1].firstSelectedPoint.should.equal no
 
-			expect(transformablePoint('y').prevConnectedUnselectedNeighbour).to.equal null
-			expect(transformablePoint('y').nextConnectedUnselectedNeighbour).to.equal idOf('b')
+			transformer._proxies.list[0].lastSelectedPoint.should.equal no
+			transformer._proxies.list[1].lastSelectedPoint.should.equal yes
 
-			expect(transformablePoint('z').prevConnectedUnselectedNeighbour).to.equal null
-			expect(transformablePoint('z').nextConnectedUnselectedNeighbour).to.equal null
+		it "should tell each point if it was connected to its direct unselected neighbour", ->
 
-			expect(transformablePoint('w').prevConnectedUnselectedNeighbour).to.equal null
-			expect(transformablePoint('w').nextConnectedUnselectedNeighbour).to.equal null
-
-			expect(transformablePoint('u').prevConnectedUnselectedNeighbour).to.equal null
-			expect(transformablePoint('u').nextConnectedUnselectedNeighbour).to.equal null
-
-		it.skip "should tell each point knows if it was initially directly or indirectly connected to its next/prev selected point", ->
-
-			{pacs, selection, transformer, selectedPoints, transformablePoint} = stringToStuff "a x-y b z-c-w u"
+			{pacs, selection, transformer, selectedPoints, idOf, proxyOf} = stringToStuff "a-x y-b z-w-c-u"
 
 			transformer._ensureInitialModelIsReady()
 
-			transformablePoint('x').wasConnectedToPrevSelectedPoint.should.equal no
-			transformablePoint('x').wasConnectedToNextSelectedPoint.should.equal yes
+			expect(proxyOf('x').prevConnectedUnselectedInitialNeighbourId).to.equal 0
+			expect(proxyOf('x').nextConnectedUnselectedInitialNeighbourId).to.equal null
 
-			transformablePoint('y').wasConnectedToPrevSelectedPoint.should.equal yes
-			transformablePoint('y').wasConnectedToNextSelectedPoint.should.equal no
+			expect(proxyOf('y').prevConnectedUnselectedInitialNeighbourId).to.equal null
+			expect(proxyOf('y').nextConnectedUnselectedInitialNeighbourId).to.equal idOf('b')
 
-			transformablePoint('z').wasConnectedToPrevSelectedPoint.should.equal no
-			transformablePoint('z').wasConnectedToNextSelectedPoint.should.equal yes
+			expect(proxyOf('z').prevConnectedUnselectedInitialNeighbourId).to.equal null
+			expect(proxyOf('z').nextConnectedUnselectedInitialNeighbourId).to.equal null
 
-			transformablePoint('w').wasConnectedToPrevSelectedPoint.should.equal yes
-			transformablePoint('w').wasConnectedToNextSelectedPoint.should.equal no
+			expect(proxyOf('w').prevConnectedUnselectedInitialNeighbourId).to.equal null
+			expect(proxyOf('w').nextConnectedUnselectedInitialNeighbourId).to.equal null
 
-			transformablePoint('u').wasConnectedToPrevSelectedPoint.should.equal no
-			transformablePoint('u').wasConnectedToNextSelectedPoint.should.equal no
+			expect(proxyOf('u').prevConnectedUnselectedInitialNeighbourId).to.equal null
+			expect(proxyOf('u').nextConnectedUnselectedInitialNeighbourId).to.equal null
+
+		it "should tell each point knows if it was initially directly or indirectly connected to its next/prev selected point", ->
+
+			{pacs, selection, transformer, selectedPoints, proxyOf} = stringToStuff "a x-y b z-c-w u"
+
+			transformer._ensureInitialModelIsReady()
+
+			proxyOf('x').wasConnectedToPrevSelectedPoint.should.equal no
+			proxyOf('x').wasConnectedToNextSelectedPoint.should.equal yes
+
+			proxyOf('y').wasConnectedToPrevSelectedPoint.should.equal yes
+			proxyOf('y').wasConnectedToNextSelectedPoint.should.equal no
+
+			proxyOf('z').wasConnectedToPrevSelectedPoint.should.equal no
+			proxyOf('z').wasConnectedToNextSelectedPoint.should.equal yes
+
+			proxyOf('w').wasConnectedToPrevSelectedPoint.should.equal yes
+			proxyOf('w').wasConnectedToNextSelectedPoint.should.equal no
+
+			proxyOf('u').wasConnectedToPrevSelectedPoint.should.equal no
+			proxyOf('u').wasConnectedToNextSelectedPoint.should.equal no
 
 	describe "_ensureConfinementsAreUpToDate()", ->
 

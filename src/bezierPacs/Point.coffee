@@ -158,6 +158,14 @@ module.exports = class Point
 
 		do @disbelong
 
+	getLeftPoint: ->
+
+		@_leftPoint
+
+	getRightPoint: ->
+
+		@_rightPoint
+
 	getLeftConnector: ->
 
 		@_leftConnector

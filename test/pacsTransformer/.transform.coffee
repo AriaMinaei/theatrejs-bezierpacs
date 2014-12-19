@@ -1,4 +1,4 @@
-{stringToStuff, pacsToString} = require './helpers'
+{stringToStuff, pacsToString} = require '../helpers'
 example = (opts, funcType) ->
 
 	{from, to, fn} = opts

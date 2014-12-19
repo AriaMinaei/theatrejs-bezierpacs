@@ -6,7 +6,7 @@ module.exports = class PacsTransformer
 
 	constructor: (@pacs) ->
 
-		@_points = new PointProxyList
+		@_proxies = new PointProxyList
 
 		do @clear
 
@@ -28,7 +28,7 @@ module.exports = class PacsTransformer
 
 	clear: ->
 
-		@_points.clear()
+		@_proxies.clear()
 		@_initialModelIsReady = no
 		@_confinementsInvalid = yes
 		@_selection = null
@@ -83,20 +83,15 @@ module.exports = class PacsTransformer
 			pointProxy.wasConnectedToPrevSelectedPoint = connectedBack
 			pointProxy.wasConnectedToNextSelectedPoint = connectedForward
 
-			unless connectedBack
+			if not connectedBack and p.isConnectedToLeft()
 
-				c = p.getLeftConnector()
+				pointProxy.prevConnectedUnselectedInitialNeighbourId = p.getLeftPoint()._id
 
-				if c? then pointProxy.prevConnectedUnselectedNeighbour = c.getLeftPoint().id
+			if not connectedForward and p.isConnectedToRight()
 
-			unless connectedForward
+				pointProxy.nextConnectedUnselectedInitialNeighbourId = p.getRightPoint()._id
 
-				c = p.getRightConnector()
-
-				if c? then pointProxy.nextConnectedUnselectedNeighbour = c.getRightPoint().id
-
-			@_pointsArray.push pointProxy
-			@_pointsMap[pointProxy.idInPacs] = pointProxy
+			@_proxies.add pointProxy
 
 		return
 
@@ -104,7 +99,7 @@ module.exports = class PacsTransformer
 
 		return unless @_confinementsInvalid
 
-		for p in @_pointsArray
+		for p in @_proxiesArray
 
 			leftConfinement = -Infinity
 			prevItem = p.initialPoint
@@ -117,7 +112,7 @@ module.exports = class PacsTransformer
 
 				continue if prevItem.isConnector()
 
-				continue if @_pointsMap[prevItem.id]?
+				continue if @_proxiesMap[prevItem.id]?
 
 				leftConfinement = prevItem._time
 
@@ -134,7 +129,7 @@ module.exports = class PacsTransformer
 
 				continue if nextItem.isConnector()
 
-				continue if @_pointsMap[nextItem.id]?
+				continue if @_proxiesMap[nextItem.id]?
 
 				rightConfinement = nextItem._time
 
@@ -160,7 +155,7 @@ module.exports = class PacsTransformer
 
 		offConfinement = no
 
-		for p in @_pointsArray
+		for p in @_proxiesArray
 
 			p.reset()
 
@@ -188,15 +183,15 @@ module.exports = class PacsTransformer
 
 		@_actionQueue.startStep 'applyProps'
 
-		p = @_pointsArray[0]
+		p = @_proxiesArray[0]
 
 		forward = p.time > p._initialTime
 
 		if forward
 
-			for i in [(@_pointsArray.length - 1)..0]
+			for i in [(@_proxiesArray.length - 1)..0]
 
-				p = @_pointsArray[i]
+				p = @_proxiesArray[i]
 
 				@_actionQueue
 				.getActionUnitFor 'point.applyProps', p #, {ignoreSettingBackwardProps: not isFirstTimeSettingTime}
@@ -207,7 +202,7 @@ module.exports = class PacsTransformer
 
 		else
 
-			for p in @_pointsArray
+			for p in @_proxiesArray
 
 				@_actionQueue
 				.getActionUnitFor 'point.applyProps', p #, {ignoreSettingBackwardProps: not isFirstTimeSettingTime}
@@ -242,13 +237,13 @@ module.exports = class PacsTransformer
 
 		unselectedPointsToConsider = []
 
-		firstLeftConnector = @_pointsArray[0].initialPoint.getLeftConnector()
+		firstLeftConnector = @_proxiesArray[0].initialPoint.getLeftConnector()
 		if firstLeftConnector?
 
 			unselectedPointsToConsider.push firstLeftConnector.getLeftPoint()
 
-		fromIndex = @pacs.getItemIndex(@_pointsArray[0].initialPoint) + 1
-		toIndex = @pacs.getItemIndex(@_pointsArray[@_pointsArray.length - 1].initialPoint) - 1
+		fromIndex = @pacs.getItemIndex(@_proxiesArray[0].initialPoint) + 1
+		toIndex = @pacs.getItemIndex(@_proxiesArray[@_proxiesArray.length - 1].initialPoint) - 1
 
 		fromIndex = Math.min fromIndex, toIndex
 		toIndex = Math.max fromIndex, toIndex
@@ -263,11 +258,11 @@ module.exports = class PacsTransformer
 
 			continue if item.isConnector()
 
-			continue if @_pointsMap[item.id]?
+			continue if @_proxiesMap[item.id]?
 
 			unselectedPointsToConsider.push item
 
-		lastSelectedPoint = @_pointsArray[@_pointsArray.length - 1].initialPoint
+		lastSelectedPoint = @_proxiesArray[@_proxiesArray.length - 1].initialPoint
 
 		if lastSelectedPoint.getRightConnector()?
 
@@ -296,7 +291,7 @@ module.exports = class PacsTransformer
 
 		@_actionQueue.startStep 'getOffSequence'
 
-		for p in @_pointsArray
+		for p in @_proxiesArray
 
 			if p.initialPoint.getLeftConnector()?
 
@@ -310,7 +305,7 @@ module.exports = class PacsTransformer
 				.getActionUnitFor 'point.disconnectRight', p.initialPoint
 				.applyForward()
 
-		for p in @_pointsArray
+		for p in @_proxiesArray
 
 			@_actionQueue
 			.getActionUnitFor 'point.getOffSequence', p.initialPoint
@@ -341,7 +336,7 @@ module.exports = class PacsTransformer
 
 		@_actionQueue.startStep 'getInSequence'
 
-		for p in @_pointsArray
+		for p in @_proxiesArray
 
 			@_actionQueue
 			.getActionUnitFor 'point.getInSequence', p.initialPoint
