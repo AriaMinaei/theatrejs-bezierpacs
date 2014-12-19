@@ -26,9 +26,9 @@ _exampleOnly = (opts) -> example opts, 'only'
 
 describe "PacsTransformer", ->
 
-	return
-
 	describe "transform()", ->
+
+		return
 
 		it "should apply a transform on each point's initial state"
 
@@ -43,6 +43,8 @@ describe "PacsTransformer", ->
 						from: "a  x  b"
 						to:   "a   x b"
 						fn: "+100"
+
+					return
 
 					example
 
@@ -61,6 +63,8 @@ describe "PacsTransformer", ->
 						from: "a  x  b y  c"
 						to:   "a   x b  y c"
 						fn: "+100"
+
+				return
 
 				describe "if the point is connected to unselected points, we should keep the connections.", ->
 
@@ -93,6 +97,8 @@ describe "PacsTransformer", ->
 						from: "a--x--b-y--c"
 						to:   "a---x-b--y-c"
 						fn: "+100"
+
+			return
 
 			describe "for multiple points", ->
 
@@ -129,6 +135,8 @@ describe "PacsTransformer", ->
 						from: "a--x-y--b-z-w"
 						to:   "a---x-y-b--z-w"
 						fn: "+100"
+
+		return
 
 		describe "for points moving out of confinement", ->
 

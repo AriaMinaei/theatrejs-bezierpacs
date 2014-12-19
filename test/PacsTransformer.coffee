@@ -99,7 +99,26 @@ describe "PacsTransformer", ->
 
 	describe "_ensureConfinementsAreUpToDate()", ->
 
-		it "should recalculate each point's confinements if the confinements are invalidated"
+		it "should recalculate each point's confinements if the confinements are invalidated", ->
+
+			{proxyOf, transformer} = stringToStuff "w a-x b y-z d u"
+
+			array = (a) ->
+
+				Array.prototype.slice.call(a, 0)
+
+			transformer._ensureInitialModelIsReady()
+			transformer._ensureConfinementsAreUpToDate()
+
+			array(proxyOf('w').currentConfinement).should.be.like [-Infinity, 200]
+			array(proxyOf('x').currentConfinement).should.be.like [200, 600]
+			array(proxyOf('y').currentConfinement).should.be.like [600, 1200]
+			array(proxyOf('z').currentConfinement).should.be.like [600, 1200]
+			array(proxyOf('u').currentConfinement).should.be.like [1200, Infinity]
+
+
+			array(proxyOf('z').initialConfinement).should.be.like [600, 1200]
+
 		it "should calculate each point's confinements as its proximity to the prev/next non-selected point"
 
 require './pacsTransformer/.transform'

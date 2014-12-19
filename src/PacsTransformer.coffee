@@ -99,51 +99,43 @@ module.exports = class PacsTransformer
 
 		return unless @_confinementsInvalid
 
-		for p in @_proxiesArray
+		for proxy in @_proxies.list
 
 			leftConfinement = -Infinity
-			prevItem = p.initialPoint
+			prevPoint = proxy.point
 
+			console.log 'doing', proxy.id
+
+			# left confinement
 			loop
 
-				prevItem = @pacs.getItemBeforeItem prevItem
+				prevPoint = prevPoint.getLeftPoint()
 
-				break unless prevItem?
+				break unless prevPoint?
 
-				continue if prevItem.isConnector()
+				continue if @_proxies.hasPoint prevPoint
 
-				continue if @_proxiesMap[prevItem.id]?
-
-				leftConfinement = prevItem._time
+				leftConfinement = prevPoint._time
 
 				break
 
 			rightConfinement = Infinity
-			nextItem = p.initialPoint
+			nextPoint = proxy.point
 
 			loop
 
-				nextItem = @pacs.getItemAfterItem nextItem
+				nextPoint = nextPoint.getRightPoint()
 
-				break unless nextItem?
 
-				continue if nextItem.isConnector()
+				break unless nextPoint?
 
-				continue if @_proxiesMap[nextItem.id]?
+				continue if @_proxies.hasPoint nextPoint
 
-				rightConfinement = nextItem._time
+				rightConfinement = nextPoint._time
 
 				break
 
-			p.leftConfinement = leftConfinement
-			p.rightConfinement = rightConfinement
-
-			unless p.hasInitialConfinements
-
-				p.initialLeftConfinement = leftConfinement
-				p.initialRightConfinement = rightConfinement
-
-				p.hasInitialConfinements = yes
+			proxy.setCurrentConfinement leftConfinement, rightConfinement
 
 		return
 

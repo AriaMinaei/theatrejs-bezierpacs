@@ -12,6 +12,14 @@ module.exports = class PointProxyList
 
 		this
 
+	hasId: (id) ->
+
+		@map[id]?
+
+	hasPoint: (p) ->
+
+		@map[p._id]?
+
 	clear: ->
 
 		@list.length = 0
