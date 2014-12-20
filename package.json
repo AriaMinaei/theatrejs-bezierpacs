@@ -4,7 +4,7 @@
   "description": "Cubic-Bezier keyframes component for theatrejs",
   "main": "",
   "scripts": {
-    "test": "mocha test/*.coffee",
+    "test": "mocha test/**/*.coffee",
     "prepublish": "coffee --bare --compile --output ./lib ./src",
     "winwatch": "start/b jitter src lib -b && mocha test/**/*.coffee --watch"
   },
@@ -22,13 +22,13 @@
     "utila": "^0.4.0"
   },
   "devDependencies": {
-    "chai": "~1.9.1",
+    "chai": "^1.9.2",
     "chai-changes": "^1.3.4",
     "chai-fuzzy": "^1.4.0",
     "coffee-script": "^1.8.0",
-    "eyespect": "^0.1.10",
     "jitter": "^1.3.0",
     "mocha": "~1.19.0",
-    "mocha-pretty-spec-reporter": "0.1.0-beta.1"
+    "mocha-pretty-spec-reporter": "0.1.0-beta.1",
+    "sinon-chai": "^2.6.0"
   }
 }
