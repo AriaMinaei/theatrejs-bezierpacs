@@ -4,8 +4,8 @@ This is gonna be a rewrite of the [old pacs](https://github.com/AriaMinaei/theat
 
 Features missing from the old pacs:
 
-* Undo/redo and a complete history
-* Ability to drag points in time, see the results in real time, and cancel the drag
-* Ability to drag selections in time, see the results in real time, scale em, etc.
-* Keep keyframe values in basic units and not in milliseconds
-* Stack-based animation instead of calling each prop on every frame (might not be necessary for 0.2)
+- [x] Undo/redo and a complete history
+- [x] Ability to drag points in time, see the results in real time, and cancel the drag
+- [x] Ability to drag selections in time, see the results in real time, scale em, etc.
+- [x] Keep keyframe values in basic units and not in milliseconds
+- [ ] Stack-based animation instead of calling each prop on every frame (might not be necessary for 0.2)
