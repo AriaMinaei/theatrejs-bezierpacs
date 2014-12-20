@@ -149,19 +149,19 @@ describe "PacsTransformer", ->
 						to:   "a---b x"
 						fn: "+400"
 
-					_example
+					example
 
 						from: "a-x-y-b"
 						to:   "a-----b x-y"
 						fn: "+600"
 
-					_example
+					example
 
-						from: "f a-x-b-y-c      d-e"
-						to:   "f a---b---c x--y d-e"
-						fn: "+600"
+						from: "f a-x-b-y-c       d-e"
+						to:   "f a---b---c x---y d-e"
+						fn: "+800"
 
-				_example
+				example
 
 					from: "a x b---c"
 					to:   "a   b-x-c"
@@ -181,11 +181,11 @@ describe "PacsTransformer", ->
 
 			describe "should try to keep internal to internal connections alive", ->
 
-				_example
+				example
 
-					from: "a x---y b"
-					to:   "a    x--b-y"
-					fn: "+300"
+					from: "a x---y  b"
+					to:   "a      x-b-y"
+					fn: "+500"
 
 				# So far, the procedure is:
 				# * dcInternalToExternalConnections
@@ -198,8 +198,8 @@ describe "PacsTransformer", ->
 				# * remakeInterjectedExternalConnections
 				# * remakeInternalConnections
 
-				_example
+				example
 
 					from: "a x-----y b c"
-					to:   "a       x-b-c---y"
-					fn: "+500"
+					to:   "a       x-b-c-y"
+					fn: "+600"

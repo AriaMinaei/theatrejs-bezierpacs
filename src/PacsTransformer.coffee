@@ -308,3 +308,41 @@ module.exports = class PacsTransformer
 	_remakeInterjectedExternalConnections: ->
 
 	_remakeInternalConnections: ->
+
+		step = @_steppifier.getStep 'remakeInternalConnections'
+
+		for proxy, i in @_proxies.list
+
+			if proxy.wasConnectedToNextSelectedPoint
+
+				nextProxy = @_proxies.list[i + 1]
+
+				@_tryToConnect proxy.point, nextProxy.point, step
+
+		return
+
+	_tryToConnect: (from, to, step) ->
+
+		if to._time > from._time
+
+			leftMostPoint = from
+			rightMostPoint = to
+
+		else
+
+			leftMostPoint = to
+			rightMostPoint = from
+
+		current = leftMostPoint
+
+		loop
+
+			break if current is rightMostPoint
+
+			unless current.isConnectedToRight()
+
+				step.appendCommand pointProxyCommands.connectToRight(current).do()
+
+			current = current.getRightPoint()
+
+		return

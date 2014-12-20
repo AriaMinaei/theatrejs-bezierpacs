@@ -12,6 +12,9 @@ module.exports = class PointProxy
 		@firstSelectedPoint = no
 		@lastSelectedPoint = no
 
+		@wasConnectedToPrevSelectedPoint = no
+		@wasConnectedToNextSelectedPoint = no
+
 		# the current confinements
 		@currentConfinement = new Float64Array 2
 
