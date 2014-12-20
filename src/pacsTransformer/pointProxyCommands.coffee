@@ -29,9 +29,13 @@ makeCommand 'applyProps', (cls) ->
 
 		@_proxy.applyFromCurrentState()
 
+		this
+
 	cls::undo = ->
 
 		@_proxy.applyFromInitialState()
+
+		this
 
 makeCommand 'connectToLeft', (cls) ->
 
@@ -39,9 +43,13 @@ makeCommand 'connectToLeft', (cls) ->
 
 		@_point.connectToLeft()
 
+		this
+
 	cls::undo = ->
 
 		@_point.disconnectFromLeft()
+
+		this
 
 makeCommand 'disconnectFromLeft', (cls) ->
 
@@ -49,9 +57,13 @@ makeCommand 'disconnectFromLeft', (cls) ->
 
 		@_point.disconnectFromLeft()
 
+		this
+
 	cls::undo = ->
 
 		@_point.connectToLeft()
+
+		this
 
 makeCommand 'connectToRight', (cls) ->
 
@@ -59,9 +71,13 @@ makeCommand 'connectToRight', (cls) ->
 
 		@_point.connectToRight()
 
+		this
+
 	cls::undo = ->
 
 		@_point.disconnectFromRight()
+
+		this
 
 makeCommand 'disconnectFromRight', (cls) ->
 
@@ -69,9 +85,13 @@ makeCommand 'disconnectFromRight', (cls) ->
 
 		@_point.disconnectFromRight()
 
+		this
+
 	cls::undo = ->
 
 		@_point.connectToRight()
+
+		this
 
 makeCommand 'remove', (cls) ->
 
@@ -79,9 +99,13 @@ makeCommand 'remove', (cls) ->
 
 		@_point.remove()
 
+		this
+
 	cls::undo = ->
 
 		@_point.insert()
+
+		this
 
 makeCommand 'insert', (cls) ->
 
@@ -89,6 +113,10 @@ makeCommand 'insert', (cls) ->
 
 		@_point.insert()
 
+		this
+
 	cls::undo = ->
 
 		@_point.remove()
+
+		this

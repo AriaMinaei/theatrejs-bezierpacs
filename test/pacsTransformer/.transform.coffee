@@ -18,11 +18,11 @@ example = (opts, funcType) ->
 		{pacs, transformer} = stringToStuff from
 		transformer.transform func
 		pacsToString(pacs).should.equal to
-		# transformer.transform (p) ->
-		# from.should.equal pacsToString pacs
+		transformer.transform (p) ->
+		from.should.equal pacsToString pacs
 
-_example = (opts) -> example opts, 'skip'
-_exampleOnly = (opts) -> example opts, 'only'
+example.skip = (opts) -> example opts, 'skip'
+example.only = (opts) -> example opts, 'only'
 
 describe "PacsTransformer", ->
 
@@ -130,15 +130,6 @@ describe "PacsTransformer", ->
 
 		describe "for points moving out of confinement", ->
 
-			# Alright, so, we don't know exactly how pacs should behaved if a bunch
-			# of points are selected and moved around. So for now, we'll just go with
-			# these simple rules, until we can play with the interface and see if these
-			# rules make sense.
-			#
-			#  * We'll keep continuous connections among external points alive
-			#  * We'll keep continous connections among internal points alive
-			#  * We'll keep the in-confinement rules alive when applicable
-
 			describe "should try to keep external to extenral connections alive", ->
 
 				describe "should preserve external to external connections interjected by existing selected points", ->
@@ -165,19 +156,19 @@ describe "PacsTransformer", ->
 
 					from: "a x b---c"
 					to:   "a   b-x-c"
-					fn: "+200"
+					fn: "+400"
 
-				_example
+				example
 
 					from: "a x b-y-c"
 					to:   "a   b-x-c y"
-					fn: "+200"
+					fn: "+400"
 
-				_example
+				example
 
 					from: "a x b-y-z-c"
-					to:   "a   b--x--c y-z"
-					fn: "+400"
+					to:   "a   b---x-c y-z"
+					fn: "+600"
 
 			describe "should try to keep internal to internal connections alive", ->
 
@@ -187,19 +178,36 @@ describe "PacsTransformer", ->
 					to:   "a      x-b-y"
 					fn: "+500"
 
-				# So far, the procedure is:
-				# * dcInternalToExternalConnections
-				# * dcInternalConnections
-				# * getOffSequence
-				# * remakeExternalConnections
-				# * applyProps
-				# * dcExternalConnectionsToBeInterjected
-				# * getInSequence
-				# * remakeInterjectedExternalConnections
-				# * remakeInternalConnections
-
 				example
 
 					from: "a x-----y b c"
 					to:   "a       x-b-c-y"
 					fn: "+600"
+
+				example
+
+					from: "a x-y b-----c"
+					to:   "a     b-x-y-c"
+					fn: "+600"
+
+				it "some example", ->
+
+					one   = "a-x---y-b c--------d"
+					two   = "a-------b c--x---y-d"
+					three = "a-------b c-x---y--d"
+					four  = "a-------b c------x-d-y"
+					five  = "a-------b c--------d x---y"
+
+					{pacs, transformer} = stringToStuff one
+
+					transformer.transform (p) -> p.time += 1100
+					two.should.equal pacsToString pacs
+
+					transformer.transform (p) -> p.time += 1000
+					three.should.equal pacsToString pacs
+
+					transformer.transform (p) -> p.time += 1500
+					four.should.equal pacsToString pacs
+
+					transformer.transform (p) -> p.time += 1900
+					five.should.equal pacsToString pacs

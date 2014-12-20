@@ -15,3 +15,25 @@ module.exports = class CommandSteppifier
 	getStep: (name) ->
 
 		@_steps[name]
+
+	rollBack: ->
+
+		for name in @_stepNames by -1
+
+			step = @_steps[name]
+
+			step.rollBack()
+
+		return
+
+	rollBackTo: (targetName) ->
+
+		for name in @_stepNames by -1
+
+			break if name is targetName
+
+			step = @_steps[name]
+
+			step.rollBack()
+
+		return

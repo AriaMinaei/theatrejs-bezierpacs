@@ -13,14 +13,12 @@ module.exports = class PacsTransformer
 
 		@_steppifier = new CommandSteppifier [
 
-			'dcInternalToExternalConnections'
-			'dcInternalConnections'
-			'remove'
-			'remakeExternalConnections'
-			'applyProps'
-			'dcExternalConnectionsToBeInterjected'
-			'insert'
-			'remakeInterjectedExternalConnections'
+			'removeSelectedPoints'
+			'remakeConnectionsBetweenUnselectedPointsInitiallyInterjectedBySelectedPoints'
+			'applyPropsToSelectedPoints'
+			'disconnectConnectionsBetweenUnselectedPointsInterjectedByRearrangedSelectedPoints'
+			'insertSelectedPoints'
+			'remakeConnectionsBetweenUnselectedPointsInterjectedByRearrangedSelectedPoints'
 			'remakeInternalConnections'
 
 		]
@@ -28,6 +26,7 @@ module.exports = class PacsTransformer
 		@_lastRearrangementType = 'inConfinement'
 
 		@_initiallyRightConnectedUnselectedPointsInterjectedByInitiallySelectedPoints = []
+		@_listOfUnselectedPointsConnectedToRightInterjectedByRearrangedSelectedPoints = []
 
 	clear: ->
 
@@ -167,13 +166,49 @@ module.exports = class PacsTransformer
 
 		else
 
-			do @_applyProps
+			do @_applyPropsToSelectedPoints
 
 		this
 
-	_applyProps: ->
+	_reArrange: (toInitialConfinement) ->
 
-		step = @_steppifier.getStep 'applyProps'
+		if toInitialConfinement
+
+			@_steppifier.rollBack()
+
+			@_lastRearrangementType = 'inConfinement'
+
+			do @_applyPropsToSelectedPoints
+
+			return
+
+		if @_lastRearrangementType is 'inConfinement'
+
+			do @_rememberConnectionsBetweenUnselectedPointsInitiallyInterjectedBySelectedPoints
+			do @_removeSelectedPoints
+			do @_remakeConnectionsBetweenUnselectedPointsInitiallyInterjectedBySelectedPoints
+
+		else
+
+			@_steppifier.rollBackTo 'remakeConnectionsBetweenUnselectedPointsInitiallyInterjectedBySelectedPoints'
+
+		@_lastRearrangementType = 'offConfinement'
+
+		do @_applyPropsToSelectedPoints
+
+		do @_disconnectConnectionsBetweenUnselectedPointsInterjectedByRearrangedSelectedPoints
+
+		do @_insertSelectedPoints
+
+		do @_remakeConnectionsBetweenUnselectedPointsInterjectedByRearrangedSelectedPoints
+
+		do @_remakeInternalConnections
+
+		return
+
+	_applyPropsToSelectedPoints: ->
+
+		step = @_steppifier.getStep 'applyPropsToSelectedPoints'
 
 		first = @_proxies.list[0]
 
@@ -185,37 +220,7 @@ module.exports = class PacsTransformer
 
 		return
 
-	_reArrange: (toInitialConfinement) ->
-
-		if toInitialConfinement
-
-			@_steppifier.rollBack()
-
-			@_lastRearrangementType = 'inConfinement'
-
-			do @_applyProps
-
-			return
-
-		if @_lastRearrangementType is 'inConfinement'
-
-			do @_dcExternalEventualConnectionsInterjectedBySelectedPoints
-			do @_remove
-			do @_remakeExternalConnections
-
-		else
-
-			@_steppifier.rollBackTo 'applyProps'
-
-		do @_applyProps
-		do @_insert
-		do @_remakeInternalConnections
-
-		return
-		do @_dcExternalConnectionsToBeInterjected
-		do @_remakeInterjectedExternalConnections
-
-	_dcExternalEventualConnectionsInterjectedBySelectedPoints: ->
+	_rememberConnectionsBetweenUnselectedPointsInitiallyInterjectedBySelectedPoints: ->
 
 		list = @_initiallyRightConnectedUnselectedPointsInterjectedByInitiallySelectedPoints
 		list.length = 0
@@ -263,11 +268,9 @@ module.exports = class PacsTransformer
 
 		return
 
-	_dcInternalConnections: ->
+	_removeSelectedPoints: ->
 
-	_remove: ->
-
-		step = @_steppifier.getStep 'remove'
+		step = @_steppifier.getStep 'removeSelectedPoints'
 
 		for p in @_proxies.points
 
@@ -285,9 +288,9 @@ module.exports = class PacsTransformer
 
 		return
 
-	_remakeExternalConnections: ->
+	_remakeConnectionsBetweenUnselectedPointsInitiallyInterjectedBySelectedPoints: ->
 
-		step = @_steppifier.getStep 'remakeExternalConnections'
+		step = @_steppifier.getStep 'remakeConnectionsBetweenUnselectedPointsInitiallyInterjectedBySelectedPoints'
 
 		for id in @_initiallyRightConnectedUnselectedPointsInterjectedByInitiallySelectedPoints
 
@@ -295,17 +298,45 @@ module.exports = class PacsTransformer
 
 			step.appendCommand pointProxyCommands.connectToRight(p).do()
 
-	_dcExternalConnectionsToBeInterjected: ->
+		return
 
-	_insert: ->
+	_disconnectConnectionsBetweenUnselectedPointsInterjectedByRearrangedSelectedPoints: ->
 
-		step = @_steppifier.getStep 'insert'
+		step = @_steppifier.getStep 'disconnectConnectionsBetweenUnselectedPointsInterjectedByRearrangedSelectedPoints'
+
+		unselectedPointsToConnectToRight = @_listOfUnselectedPointsConnectedToRightInterjectedByRearrangedSelectedPoints
+
+		unselectedPointsToConnectToRight.length = 0
+
+		for point in @_proxies.points
+
+			leftUnselectedPoint = @pacs._list.getBeforeOrAt point._time
+
+			if leftUnselectedPoint?.isConnectedToRight()
+
+				unselectedPointsToConnectToRight.push {from: leftUnselectedPoint, to: leftUnselectedPoint.getRightPoint()}
+
+				step.appendCommand pointProxyCommands.disconnectFromRight(leftUnselectedPoint).do()
+
+		return
+
+	_insertSelectedPoints: ->
+
+		step = @_steppifier.getStep 'insertSelectedPoints'
 
 		for p in @_proxies.points
 
 			step.appendCommand pointProxyCommands.insert(p).do()
 
-	_remakeInterjectedExternalConnections: ->
+	_remakeConnectionsBetweenUnselectedPointsInterjectedByRearrangedSelectedPoints: ->
+
+		step = @_steppifier.getStep 'remakeConnectionsBetweenUnselectedPointsInterjectedByRearrangedSelectedPoints'
+
+		for {from, to} in @_listOfUnselectedPointsConnectedToRightInterjectedByRearrangedSelectedPoints
+
+			@_tryToConnect from, to, step
+
+		return
 
 	_remakeInternalConnections: ->
 

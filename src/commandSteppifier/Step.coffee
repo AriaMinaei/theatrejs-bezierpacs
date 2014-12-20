@@ -9,3 +9,13 @@ module.exports = class Step
 		@_commands.push cmd
 
 		this
+
+	rollBack: ->
+
+		loop
+
+			break if @_commands.length is 0
+
+			@_commands.pop().undo()
+
+		this
