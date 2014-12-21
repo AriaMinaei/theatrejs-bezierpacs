@@ -19,7 +19,7 @@
     "url": "https://github.com/AriaMinaei/theatrejs-bezierpacs/issues"
   },
   "dependencies": {
-    "utila": "^0.4.0"
+    "utila": "^0.5.0-dev.1"
   },
   "devDependencies": {
     "chai": "^1.9.2",
