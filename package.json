@@ -29,6 +29,7 @@
     "jitter": "^1.3.0",
     "mocha": "~1.19.0",
     "mocha-pretty-spec-reporter": "0.1.0-beta.1",
+    "sinon": "^1.12.2",
     "sinon-chai": "^2.6.0"
   }
 }
