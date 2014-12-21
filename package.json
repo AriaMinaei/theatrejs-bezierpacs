@@ -4,9 +4,9 @@
   "description": "Cubic-Bezier keyframes component for theatrejs",
   "main": "",
   "scripts": {
-    "test": "mocha test/**.coffee",
+    "test": "mocha \"test/**/*.coffee\"",
     "prepublish": "coffee --bare --compile --output ./lib ./src",
-    "winwatch": "start/b jitter src lib -b && mocha test/**/**.coffee --watch"
+    "winwatch": "start/b jitter src lib -b && mocha \"test/**/*.coffee\" --watch"
   },
   "repository": {
     "type": "git",
