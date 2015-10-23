@@ -1,4 +1,3 @@
-
 ###*
  * Items give a very basic interface to interact with the their position in time
  * and their other attributes. They don't try to be smart. If you create a point
@@ -7,8 +6,4 @@
  * @type {[type]}
 ###
 module.exports = class Item
-
 	constructor: ->
-
-
-

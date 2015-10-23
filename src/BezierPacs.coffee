@@ -2,18 +2,14 @@ PointsList = require './bezierPacs/PointsList'
 Point = require './bezierPacs/Point'
 
 module.exports = class BezierPacs
-
 	constructor: ->
-
 		@_list = new PointsList this
+		@_animChangeRange = {from: Infinity, to: -Infinity}
 
 		@_haveDataChanges = no
 		@_committingDataChangesHeldOff = no
-
 		@_committingAnimChangesHeldOff = no
 		@_haveAnimChanges = no
-
-		@_animChangeRange = {from: Infinity, to: -Infinity}
 
 	###*
 	 * Holds off on committing the data changes that should be
@@ -23,7 +19,6 @@ module.exports = class BezierPacs
 	 * call comitDataChanges() to stop holding off and update the server.
 	###
 	holdOffOnCommittingDataChanges: ->
-
 		@_committingDataChangesHeldOff = yes
 
 	###*
@@ -31,7 +26,6 @@ module.exports = class BezierPacs
 	 * it'll stop holding them off.
 	###
 	commitDataChanges: ->
-
 		@_committingDataChangesHeldOff = no
 
 		#TODO: actually commit
@@ -44,16 +38,13 @@ module.exports = class BezierPacs
 	 * call comitAnimChanges() to stop holding off and update the scene.
 	###
 	holdOffOnCommittingAnimChanges: ->
-
 		@_committingAnimChangesHeldOff = yes
 
 	###*
 	 * Applies changes in each individual item to the scene.
 	###
 	commitAnimChanges: ->
-
 		@_committingAnimChangesHeldOff = no
-
 		@_animChangeRange.from = Infinity
 		@_animChangeRange.to = -Infinity
 
@@ -70,25 +61,18 @@ module.exports = class BezierPacs
 	 * @param  {Float64} to   Change range to
 	###
 	_reportChange: (from, to) ->
-
-		# console.log 'Change from', from, 'to', to
-
 		# Sometimes we might not have changes in animation, but just in data,
 		# so let's allow such cases to be valid
 		if from?
-
 			@_haveAnimChanges = yes
-
 			@_animChangeRange.from = Math.min(@_animChangeRange.from, from)
 			@_animChangeRange.to = Math.min(@_animChangeRange.to, to)
 
 			do @commitAnimChanges unless @_committingAnimChangesHeldOff
 
 		@_haveDataChanges = yes
-
 		do @commitDataChanges unless @_committingDataChangesHeldOff
 
 	createPoint: ->
-
 		#TODO: pool
 		new Point

@@ -1,13 +1,9 @@
 {stringToStuff, pacsToString} = require '../helpers'
 
 describe "PointsList", ->
-
 	describe "getIndexOfItemBeforeOrAt()", ->
-
 		it "should do a binary search", ->
-
 			stuff = stringToStuff 'a b c d'
-
 			list = stuff.pacs._list
 
 			list.getIndexOfPointBeforeOrAt(0).should.equal 0

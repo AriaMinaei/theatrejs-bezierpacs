@@ -5,8 +5,8 @@
   "main": "",
   "scripts": {
     "test": "mocha \"test/**/*.coffee\"",
-    "prepublish": "coffee --bare --compile --output ./lib ./src",
-    "winwatch": "start/b jitter src lib -b && mocha \"test/**/*.coffee\" --watch"
+    "test.w": "mocha \"test/**/*.coffee\" --watch",
+    "prepublish": "coffee --bare --compile --output ./lib ./src"
   },
   "repository": {
     "type": "git",
